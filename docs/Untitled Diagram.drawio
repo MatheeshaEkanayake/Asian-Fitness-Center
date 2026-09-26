@@ -1,0 +1,161 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="Nzvb8pff2ur_0Imo9Q98">
+    <mxGraphModel dx="1884" dy="865" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=22;fontStyle=1;fontColor=#1E293B;" value="Gym Management System - Architecture &amp; System Flow" vertex="1">
+          <mxGeometry height="40" width="600" x="500" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-hw" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#64748B;fontStyle=1;startSize=30;fontSize=14;fontColor=#334155;" value="HARDWARE &amp; EXTERNAL SERVICES" vertex="1">
+          <mxGeometry height="160" width="1520" x="40" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="senseface" parent="layer-hw" style="shape=rect;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#F97316;strokeWidth=2;fontSize=12;fontColor=#9A3412;rounded=1;" value="&lt;b&gt;ZKTeco SenseFace 3A&lt;/b&gt;&lt;br&gt;(Biometric Access Terminal)&lt;br&gt;&lt;i&gt;Runs ADMS Protocol Push&lt;/i&gt;" vertex="1">
+          <mxGeometry height="80" width="220" x="40" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="fcm-apns" parent="layer-hw" style="shape=rect;whiteSpace=wrap;html=1;fillColor=#F3E8FF;strokeColor=#A855F7;strokeWidth=2;fontSize=12;fontColor=#6B21A8;rounded=1;" value="&lt;b&gt;Push Notification Gateway&lt;/b&gt;&lt;br&gt;FCM / APNs" vertex="1">
+          <mxGeometry height="80" width="220" x="1260" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-fe" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0F9FF;strokeColor=#0284C7;fontStyle=1;startSize=30;fontSize=14;fontColor=#0369A1;" value="FRONTEND LAYER" vertex="1">
+          <mxGeometry height="260" width="1520" x="40" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-web" parent="layer-fe" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;fontStyle=1;startSize=25;fontSize=12;fontColor=#075985;" value="frontend-web/ (React)" vertex="1">
+          <mxGeometry height="200" width="940" x="30" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-web-api" parent="fe-web" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/api/&lt;br&gt;(client.js, admin.js, staff.js, member.js)" vertex="1">
+          <mxGeometry height="40" width="260" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-web-admin" parent="fe-web" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/pages/admin/&lt;br&gt;(CoachMgmt, AttendanceReports, GymReports)" vertex="1">
+          <mxGeometry height="80" width="280" x="20" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-web-staff" parent="fe-web" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/pages/staff/&lt;br&gt;(MemberMgmt, MachineMaintenance, Stock, Bills, Payments)" vertex="1">
+          <mxGeometry height="80" width="310" x="320" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-web-member" parent="fe-web" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/pages/member/&lt;br&gt;(Offers, Progress, Reviews, Exercise/Diet Plans)" vertex="1">
+          <mxGeometry height="80" width="270" x="650" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-mobile" parent="layer-fe" style="swimlane;whiteSpace=wrap;html=1;fillColor=#E0F2FE;strokeColor=#38BDF8;fontStyle=1;startSize=25;fontSize=12;fontColor=#075985;" value="frontend-mobile/ (React Native - Customer Mobile App)" vertex="1">
+          <mxGeometry height="200" width="480" x="1010" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-mobile-api" parent="fe-mobile" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/api/client.js" vertex="1">
+          <mxGeometry height="40" width="160" x="20" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-mobile-push" parent="fe-mobile" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/push/registerForPushNotifications.js" vertex="1">
+          <mxGeometry height="40" width="260" x="200" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="fe-mobile-screens" parent="fe-mobile" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#0284C7;fontSize=11;" value="src/screens/&lt;br&gt;(Offers, Progress, Review, Exercise/Diet Plans, Notifications)" vertex="1">
+          <mxGeometry height="80" width="440" x="20" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-mw" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontStyle=1;startSize=30;fontSize=14;fontColor=#B45309;" value="MIDDLEWARE &amp; ROUTING LAYER (backend/routes/ &amp; Http/Middleware/)" vertex="1">
+          <mxGeometry height="150" width="1520" x="40" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="route-admin" parent="layer-mw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" value="&lt;b&gt;routes/admin.php&lt;/b&gt;&lt;br&gt;Prefix: /api/admin&lt;br&gt;&lt;i&gt;Middleware: auth:sanctum, role:admin&lt;/i&gt;" vertex="1">
+          <mxGeometry height="70" width="250" x="30" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="route-staff" parent="layer-mw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" value="&lt;b&gt;routes/staff.php&lt;/b&gt;&lt;br&gt;Prefix: /api/staff&lt;br&gt;&lt;i&gt;Middleware: auth:sanctum, role:employee&lt;/i&gt;" vertex="1">
+          <mxGeometry height="70" width="270" x="310" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="route-member" parent="layer-mw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#D97706;fontSize=11;" value="&lt;b&gt;routes/member.php&lt;/b&gt;&lt;br&gt;Prefix: /api/member&lt;br&gt;&lt;i&gt;Middleware: auth:sanctum, role:member, EnsurePaymentCurrent&lt;/i&gt;" vertex="1">
+          <mxGeometry height="70" width="340" x="610" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="route-device" parent="layer-mw" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#F97316;strokeWidth=2;fontSize=11;" value="&lt;b&gt;routes/device.php&lt;/b&gt;&lt;br&gt;Prefix: /iclock&lt;br&gt;&lt;i&gt;Middleware: VerifyAdmsDevice (Shared Secret / IP Allowlist, No Sanctum)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="70" width="490" x="1000" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="layer-backend" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#DCFCE7;strokeColor=#16A34A;fontStyle=1;startSize=30;fontSize=14;fontColor=#15803D;" value="BACKEND APPLICATION LAYER (backend/app/)" vertex="1">
+          <mxGeometry height="380" width="1520" x="40" y="770" as="geometry" />
+        </mxCell>
+        <mxCell id="be-ctrl" parent="layer-backend" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#4ADE80;fontStyle=1;startSize=25;fontSize=12;fontColor=#166534;" value="Http/Controllers/" vertex="1">
+          <mxGeometry height="90" width="1460" x="30" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="be-ctrl-admin" parent="be-ctrl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="Admin/*&lt;br&gt;(Coach, Attendance, Report)" vertex="1">
+          <mxGeometry height="40" width="200" x="20" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="be-ctrl-staff" parent="be-ctrl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="Staff/*&lt;br&gt;(Member, Machine, Entry, Stock, Bill, Payment)" vertex="1">
+          <mxGeometry height="40" width="290" x="260" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="be-ctrl-member" parent="be-ctrl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="Member/*&lt;br&gt;(Offer, Progress, Review, Exercise/Diet Plans)" vertex="1">
+          <mxGeometry height="40" width="280" x="580" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="be-ctrl-device" parent="be-ctrl" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#F97316;fontSize=10;fontStyle=1;" value="Device/AdmsController.php&lt;br&gt;(ZKTeco ADMS push endpoints)" vertex="1">
+          <mxGeometry height="40" width="460" x="970" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="be-services" parent="layer-backend" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#4ADE80;fontStyle=1;startSize=25;fontSize=12;fontColor=#166534;" value="Services/" vertex="1">
+          <mxGeometry height="100" width="670" x="30" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="srv-access" parent="be-services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="AccessControlService.php&lt;br&gt;&lt;i&gt;Zone/Time reassignment&lt;/i&gt;" vertex="1">
+          <mxGeometry height="50" width="150" x="15" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="srv-adms" parent="be-services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="AdmsCommandService.php&lt;br&gt;&lt;i&gt;Queues DATA UPDATE commands&lt;/i&gt;" vertex="1">
+          <mxGeometry height="50" width="170" x="175" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="srv-report" parent="be-services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="ReportService.php&lt;br&gt;&lt;i&gt;Aggregates Gym reports&lt;/i&gt;" vertex="1">
+          <mxGeometry height="50" width="140" x="355" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="srv-push" parent="be-services" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="PushNotificationService.php&lt;br&gt;&lt;i&gt;FCM/APNs dispatch&lt;/i&gt;" vertex="1">
+          <mxGeometry height="50" width="150" x="505" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="be-events" parent="layer-backend" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#4ADE80;fontStyle=1;startSize=25;fontSize=12;fontColor=#166534;" value="Events &amp; Listeners/" vertex="1">
+          <mxGeometry height="100" width="770" x="720" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="evt-pay" parent="be-events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="PaymentRecorded&lt;br&gt;↓&lt;br&gt;SyncDeviceAccessOnPayment" vertex="1">
+          <mxGeometry height="50" width="220" x="15" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="evt-enroll" parent="be-events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=10;" value="MemberEnrolled&lt;br&gt;↓&lt;br&gt;SyncDeviceEnrollmentOnMemberCreate" vertex="1">
+          <mxGeometry height="50" width="250" x="255" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="evt-entry" parent="be-events" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFEDD5;strokeColor=#F97316;fontSize=10;" value="EntryDetected&lt;br&gt;&lt;i&gt;(Triggered by SenseFace 3A ADMS push)&lt;/i&gt;" vertex="1">
+          <mxGeometry height="50" width="230" x="525" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="be-models" parent="layer-backend" style="swimlane;whiteSpace=wrap;html=1;fillColor=#F0FDF4;strokeColor=#4ADE80;fontStyle=1;startSize=25;fontSize=12;fontColor=#166534;" value="Models &amp; Database Layer" vertex="1">
+          <mxGeometry height="100" width="1460" x="30" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="mdl-core" parent="be-models" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#16A34A;fontSize=11;" value="User, Member, Coach, Machine, StockItem, Bill, Payment, Offer, ProgressLog, Review, ExercisePlan, DietPlan" vertex="1">
+          <mxGeometry height="50" width="740" x="20" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="mdl-device" parent="be-models" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FEF3C7;strokeColor=#D97706;fontSize=11;" value="&lt;b&gt;Device Related Models:&lt;/b&gt;&lt;br&gt;MemberBiometric (device_user_id ↔ member_id)&lt;br&gt;Device, DeviceCommand (ADMS queue), AttendanceLog" vertex="1">
+          <mxGeometry height="50" width="660" x="780" y="35" as="geometry" />
+        </mxCell>
+        <mxCell id="edge1" edge="1" parent="1" source="senseface" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F97316;strokeWidth=2;fontColor=#9A3412;" target="route-device" value="ADMS HTTP Push&lt;br&gt;(Biometric logs / Heartbeat)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="150" y="260" />
+              <mxPoint x="1285" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="edge2" edge="1" parent="1" source="fe-web-api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.5;" target="route-admin" value="API Requests">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge3" edge="1" parent="1" source="fe-web-api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.5;" target="route-staff">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge4" edge="1" parent="1" source="fe-web-api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.5;" target="route-member">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge5" edge="1" parent="1" source="fe-mobile-api" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#0284C7;strokeWidth=1.5;" target="route-member" value="API Requests">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge6" edge="1" parent="1" source="route-admin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=1.5;" target="be-ctrl-admin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge7" edge="1" parent="1" source="route-staff" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=1.5;" target="be-ctrl-staff">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge8" edge="1" parent="1" source="route-member" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#D97706;strokeWidth=1.5;" target="be-ctrl-member">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge9" edge="1" parent="1" source="route-device" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#F97316;strokeWidth=2;" target="be-ctrl-device">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge10" edge="1" parent="1" source="srv-push" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#A855F7;strokeWidth=2;fontColor=#6B21A8;" target="fcm-apns" value="Dispatch Push Notifications">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="580" y="260" />
+              <mxPoint x="1370" y="260" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

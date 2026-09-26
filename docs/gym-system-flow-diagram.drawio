@@ -1,0 +1,226 @@
+<mxfile host="app.diagrams.net" agent="Claude">
+  <diagram name="Gym System Flow" id="gymSystemFlow">
+    <mxGraphModel dx="1414" dy="831" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="feAdmin" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" value="Admin Frontend (React)" vertex="1">
+          <mxGeometry height="108" width="220" x="40" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="feAdmin_1" parent="feAdmin" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Coach Management UI" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="feAdmin_2" parent="feAdmin" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Attendance Reports UI" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="feAdmin_3" parent="feAdmin" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Gym Reports Dashboard" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" value="Employee Frontend (React)" vertex="1">
+          <mxGeometry height="186" width="220" x="40" y="198" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee_1" parent="feEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Member Management UI" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee_2" parent="feEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Machine Maintenance UI" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee_3" parent="feEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Gym Entry Management UI" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee_4" parent="feEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Stock UI" vertex="1">
+          <mxGeometry height="26" width="220" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee_5" parent="feEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Bills UI" vertex="1">
+          <mxGeometry height="26" width="220" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="feEmployee_6" parent="feEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Payment Management UI" vertex="1">
+          <mxGeometry height="26" width="220" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomer" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" value="Customer Frontend (React)" vertex="1">
+          <mxGeometry height="160" width="220" x="40" y="434" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomer_1" parent="feCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Offers UI" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomer_2" parent="feCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Member Progress UI" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomer_3" parent="feCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Member Review UI" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomer_4" parent="feCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Exercise Plans UI" vertex="1">
+          <mxGeometry height="26" width="220" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomer_5" parent="feCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Diet Plan UI" vertex="1">
+          <mxGeometry height="26" width="220" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#e1d5e7;strokeColor=#9673a6;fontStyle=1;fontSize=12;" value="Customer Mobile App (React Native)" vertex="1">
+          <mxGeometry height="186" width="220" x="40" y="614" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile_1" parent="feCustomerMobile" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Offers" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile_2" parent="feCustomerMobile" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Member Progress" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile_3" parent="feCustomerMobile" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Member Review" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile_4" parent="feCustomerMobile" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Exercise Plans" vertex="1">
+          <mxGeometry height="26" width="220" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile_5" parent="feCustomerMobile" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Diet Plan" vertex="1">
+          <mxGeometry height="26" width="220" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="feCustomerMobile_6" parent="feCustomerMobile" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="Push Notifications" vertex="1">
+          <mxGeometry height="26" width="220" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="mw1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=center;verticalAlign=middle;" value="Middleware&#xa;auth:sanctum -&gt; role:X -&gt;&#xa;EnsureAccountActive -&gt;&#xa;EnsurePaymentCurrent (member)" vertex="1">
+          <mxGeometry height="100" width="160" x="340" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="beAdmin" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" value="Admin API (Laravel)" vertex="1">
+          <mxGeometry height="108" width="220" x="580" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="beAdmin_1" parent="beAdmin" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="CoachController" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="beAdmin_2" parent="beAdmin" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="AttendanceController" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="beAdmin_3" parent="beAdmin" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="ReportController" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" value="Employee API (Laravel)" vertex="1">
+          <mxGeometry height="186" width="220" x="580" y="198" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee_1" parent="beEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="MemberController" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee_2" parent="beEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="MachineController" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee_3" parent="beEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="EntryController" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee_4" parent="beEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="StockController" vertex="1">
+          <mxGeometry height="26" width="220" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee_5" parent="beEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="BillController" vertex="1">
+          <mxGeometry height="26" width="220" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="beEmployee_6" parent="beEmployee" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="PaymentController" vertex="1">
+          <mxGeometry height="26" width="220" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="beCustomer" parent="1" style="swimlane;whiteSpace=wrap;html=1;startSize=30;childLayout=stackLayout;horizontal=1;horizontalStack=0;resizeParent=0;resizeParentMax=0;collapsible=0;marginBottom=0;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=12;" value="Customer API (Laravel)" vertex="1">
+          <mxGeometry height="160" width="220" x="580" y="434" as="geometry" />
+        </mxCell>
+        <mxCell id="beCustomer_1" parent="beCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="OfferController" vertex="1">
+          <mxGeometry height="26" width="220" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="beCustomer_2" parent="beCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="ProgressController" vertex="1">
+          <mxGeometry height="26" width="220" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="beCustomer_3" parent="beCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="ReviewController" vertex="1">
+          <mxGeometry height="26" width="220" y="82" as="geometry" />
+        </mxCell>
+        <mxCell id="beCustomer_4" parent="beCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="ExercisePlanController" vertex="1">
+          <mxGeometry height="26" width="220" y="108" as="geometry" />
+        </mxCell>
+        <mxCell id="beCustomer_5" parent="beCustomer" style="text;html=1;align=left;verticalAlign=middle;spacingLeft=6;overflow=hidden;strokeColor=none;fillColor=none;fontSize=12;" value="DietPlanController" vertex="1">
+          <mxGeometry height="26" width="220" y="134" as="geometry" />
+        </mxCell>
+        <mxCell id="dbAttendance" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Attendance DB&#xa;(attendance_logs)" vertex="1">
+          <mxGeometry height="80" width="140" x="900" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dbMembers" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Members DB&#xa;(members, member_biometrics)" vertex="1">
+          <mxGeometry height="80" width="140" x="900" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="dbPayments" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Payments DB&#xa;(payments, bills, bill_items)" vertex="1">
+          <mxGeometry height="80" width="140" x="900" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="dbDevices" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Devices DB&#xa;(devices, device_commands)" vertex="1">
+          <mxGeometry height="80" width="140" x="900" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="dbOperations" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Operations DB&#xa;(coaches, machines, stock_items)" vertex="1">
+          <mxGeometry height="80" width="140" x="900" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="dbContent" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" value="Content DB&#xa;(offers, progress_logs, reviews, plans)" vertex="1">
+          <mxGeometry height="80" width="140" x="900" y="590" as="geometry" />
+        </mxCell>
+        <mxCell id="hwTerminal" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;" value="ZKTeco Terminal&#xa;(ADMS, local relay decision)" vertex="1">
+          <mxGeometry height="80" width="180" x="1140" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="feAdmin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="mw1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="feEmployee" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="mw1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="feCustomer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="mw1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3b" edge="1" parent="1" source="feCustomerMobile" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="mw1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e22" edge="1" parent="1" source="beCustomer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=10;strokeColor=#9673a6;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="feCustomerMobile" value="push notification&#xa;(offers, renewal reminders)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="mw1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="beAdmin">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="mw1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="beEmployee">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="mw1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;elbow=vertical;" target="beCustomer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="beAdmin_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbOperations">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="beAdmin_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbAttendance">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="beAdmin_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbPayments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="beAdmin_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbAttendance">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="beEmployee_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbMembers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="beEmployee_1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;exitX=1;exitY=0.5;fontSize=10;" target="dbDevices" value="enroll biometric id">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" source="beEmployee_2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbOperations">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="beEmployee_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbAttendance">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="beEmployee_3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbDevices">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="beEmployee_4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbOperations">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="beEmployee_5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbPayments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="beEmployee_6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;exitX=1;exitY=0.5;" target="dbPayments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="beEmployee_6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;exitX=1;exitY=0.5;fontSize=10;strokeColor=#b85450;" target="dbDevices" value="grant/revoke access (queued)">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e20" edge="1" parent="1" source="beCustomer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;" target="dbContent">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e21" edge="1" parent="1" source="dbDevices" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;dashed=1;fontSize=10;strokeColor=#d6b656;" target="hwTerminal" value="ADMS poll (getrequest) / devicecmd&#xa;— async, secs to tens of secs">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

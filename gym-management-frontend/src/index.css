@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+/* `dark:` follows the in-app toggle (data-theme on <html>, see
+   ThemeContext), not the OS setting. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+@theme {
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+
+  --color-paper: #f3f3ef;
+  --color-surface: #ffffff;
+  --color-ink: #1b1f23;
+  --color-ink-soft: #5b6169;
+  --color-ink-faint: #8a8f97;
+  --color-line: #e3e2dc;
+  --color-line-strong: #cfcec6;
+
+  --color-brand: #2f6f4e;
+  --color-brand-dark: #234f39;
+  --color-brand-soft: #e7f1eb;
+  /* Text on a solid brand fill (primary buttons). */
+  --color-on-brand: #ffffff;
+  /* Deep brand fill that stays dark in both modes (auth branding panel). */
+  --color-brand-deep: #234f39;
+
+  --color-amber: #b3542f;
+  --color-amber-soft: #f5e7de;
+
+  --color-danger: #a13d3d;
+  --color-danger-soft: #f5e2e1;
+
+  --color-slate: #565c66;
+  --color-slate-soft: #e7e7e3;
+}
+
+/* Maroon brand used on the signed-out pages and the member area. */
+.brand-maroon {
+  --color-brand: #8c1841;
+  --color-brand-dark: #440e21;
+  --color-brand-soft: #f2e6ea;
+  --color-brand-deep: #440e21;
+}
+
+/* Dark mode: same token names, slate palette to match the ERP app's dark
+   theme. Accents flip to light tints (with dark text on solid brand fills)
+   so they stay readable on the dark surfaces. Screen only, so a receipt
+   printed from dark mode still uses the light palette. */
+@media screen {
+  [data-theme="dark"] {
+    color-scheme: dark; /* native date pickers, selects, checkboxes, scrollbars */
+
+    --color-paper: #0f172a;
+    --color-surface: #1e293b;
+    --color-ink: #f1f5f9;
+    --color-ink-soft: #aab6c6;
+    --color-ink-faint: #8391a6;
+    --color-line: #334155;
+    --color-line-strong: #475569;
+
+    --color-brand: #6fcf97;
+    --color-brand-dark: #a7e3c2;
+    --color-brand-soft: #173a2d;
+    --color-on-brand: #0f172a;
+
+    --color-amber: #f2a57f;
+    --color-amber-soft: #3f2a1f;
+
+    --color-danger: #f49a9a;
+    --color-danger-soft: #3f2024;
+
+    --color-slate: #cbd5e1;
+    --color-slate-soft: #334155;
+  }
+
+  [data-theme="dark"] .brand-maroon {
+    --color-brand: #f08bab;
+    --color-brand-dark: #f7c0d2;
+    --color-brand-soft: #3d1a28;
+  }
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Focus ring kept visible and consistent app-wide for accessibility */
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--color-brand-soft);
+  color: var(--color-brand-dark);
+}
+
+/* Printing a receipt: hide everything else on the page. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #receipt-printable,
+  #receipt-printable * {
+    visibility: visible;
+  }
+  #receipt-printable {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
