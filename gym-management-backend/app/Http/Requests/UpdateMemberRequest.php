@@ -34,7 +34,8 @@ class UpdateMemberRequest extends FormRequest
         $currentPlanId = $this->route('member')?->payment_plan_id;
 
         return [
-            'member_id_number' => ['sometimes', 'nullable', 'string', 'max:100'],
+            // Doubles as the door device PIN (see MemberDeviceSync).
+            'member_id_number' => ['sometimes', 'nullable', 'regex:/^\d{1,9}$/', "unique:members,member_id_number,{$memberId}"],
             'full_name'        => ['sometimes', 'required', 'string', 'max:255'],
             'nic'              => ['sometimes', 'nullable', 'string', 'max:50'],
             'email'            => ['sometimes', 'nullable', 'email', "unique:members,email,{$memberId}"],
@@ -71,6 +72,8 @@ class UpdateMemberRequest extends FormRequest
     public function messages(): array
     {
         return [
+            'member_id_number.regex'   => 'Member ID number must be 1–9 digits (it is the door PIN).',
+            'member_id_number.unique'  => 'That Member ID number is already used by someone else.',
             'full_name.required'       => 'Full name is required.',
             'email.email'              => 'Enter a valid email address.',
             'email.unique'             => 'A member with this email already exists.',

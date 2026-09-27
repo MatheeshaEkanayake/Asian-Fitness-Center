@@ -17,12 +17,15 @@ import FormField, { TextInput, Select } from '../../components/shared/FormField'
 // registrations existed (e.g. the bootstrap admin) have no registration, so
 // their own name/email stay editable here.
 
-const emptyForm = { memberId: '', fullName: '', email: '', roleId: '', branchId: '', status: 'Active' }
+const emptyForm = { memberId: '', memberIdNumber: '', fullName: '', email: '', roleId: '', branchId: '', status: 'Active' }
 
 function validate(form, { isEdit, isLinked }) {
   const errors = {}
   if (!isEdit && !form.memberId) errors.memberId = 'Select a registered person.'
   if (!isEdit && !form.roleId) errors.roleId = 'Select a role.'
+  if (form.memberIdNumber && !/^\d{1,9}$/.test(form.memberIdNumber.trim())) {
+    errors.memberIdNumber = 'Member ID number must be 1–9 digits (it is the door PIN).'
+  }
   if (isEdit && !isLinked) {
     if (!form.fullName.trim()) errors.fullName = 'Full name is required.'
     if (!form.email.trim()) errors.email = 'Email is required.'
@@ -45,6 +48,7 @@ export default function UserFormPage() {
     ...emptyForm,
     fullName: record.fullName || '',
     email: record.email || '',
+    memberIdNumber: record.memberIdNumber || '',
     roleId: record.roleId ?? '',
     branchId: record.branchId ?? '',
     status: record.status,
@@ -95,13 +99,14 @@ export default function UserFormPage() {
     setSaving(true)
     try {
       const access = { roleId: form.roleId || null, branchId: form.branchId || null }
+      const doorPin = { memberIdNumber: form.memberIdNumber.trim() || null }
       if (!isEdit) {
-        await addUser({ memberId: Number(form.memberId), ...access })
+        await addUser({ memberId: Number(form.memberId), ...doorPin, ...access })
       } else {
         await editUser(Number(userId), {
           ...access,
           status: form.status,
-          ...(isLinked ? {} : { fullName: form.fullName, email: form.email }),
+          ...(isLinked ? doorPin : { fullName: form.fullName, email: form.email }),
         })
       }
       navigate('/setup/users')
@@ -173,7 +178,14 @@ export default function UserFormPage() {
                 <Combobox
                   id="memberId"
                   value={form.memberId}
-                  onChange={(memberId) => setForm((f) => ({ ...f, memberId }))}
+                  // Pre-fill their door PIN if their registration already has one.
+                  onChange={(memberId) =>
+                    setForm((f) => ({
+                      ...f,
+                      memberId,
+                      memberIdNumber: candidates.find((c) => String(c.id) === memberId)?.memberIdNumber || '',
+                    }))
+                  }
                   options={candidateOptions}
                   placeholder={candidatesStatus === 'loading' ? 'Loading registrations…' : 'Search registered people…'}
                   emptyMessage="No registered person matches"
@@ -194,6 +206,26 @@ export default function UserFormPage() {
                   <TextInput id="email" type="email" value={form.email} onChange={update('email')} error={errors.email} />
                 </FormField>
               </>
+            )}
+
+            {/* Staff door PIN, saved on their registration. Old-style accounts
+                without a registration can't be put on the door device. */}
+            {(!isEdit || isLinked) && (
+              <FormField
+                label="Member ID number (door PIN)"
+                htmlFor="memberIdNumber"
+                error={errors.memberIdNumber}
+                hint="Digits only (1–9). The number the door device knows them by."
+              >
+                <TextInput
+                  id="memberIdNumber"
+                  inputMode="numeric"
+                  value={form.memberIdNumber}
+                  onChange={update('memberIdNumber')}
+                  placeholder="e.g. 7"
+                  error={errors.memberIdNumber}
+                />
+              </FormField>
             )}
 
             <FormField label="Role" htmlFor="roleId" required={!isEdit} error={errors.roleId}>

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\PaymentObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -36,6 +38,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * refunds table) was removed entirely — Refunded/PartiallyRefunded remain
  * valid status strings, but nothing currently sets them.
  */
+#[ObservedBy(PaymentObserver::class)]
 class Payment extends Model
 {
     protected $fillable = [

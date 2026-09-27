@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentPlanController;
 use App\Http\Controllers\Api\PaymentSummaryController;
 use App\Http\Controllers\Api\RoleController;
+use App\Http\Controllers\Api\StaffAttendanceController;
 use App\Http\Controllers\Api\SystemDiagnosticsController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
@@ -177,4 +178,7 @@ Route::middleware('auth:sanctum')->group(function () {
     //           + useMemo filter/sort in MemberAttendencePage.jsx
     Route::get('/attendance', [AttendanceController::class, 'index'])->middleware('permission:attendance.view');
     Route::post('/attendance', [AttendanceController::class, 'store'])->middleware('permission:attendance.edit');
+
+    // Staff check-ins from the door device (Members › Staff Attendance).
+    Route::get('/staff-attendance', [StaffAttendanceController::class, 'index'])->middleware('permission:attendance.view');
 });

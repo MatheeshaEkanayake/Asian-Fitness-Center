@@ -38,6 +38,9 @@ const emptyForm = {
 // "password changes are a deliberate, separate action" pattern).
 function validate(form, isEdit) {
   const errors = {}
+  if (form.memberIdNumber && !/^\d{1,9}$/.test(form.memberIdNumber.trim())) {
+    errors.memberIdNumber = 'Member ID number must be 1–9 digits (it is the door PIN).'
+  }
   if (!form.fullName.trim()) errors.fullName = 'Full name is required.'
   if (form.email.trim() && !/^\S+@\S+\.\S+$/.test(form.email)) {
     errors.email = 'Enter a valid email address.'
@@ -215,12 +218,19 @@ export function MemberForm({
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {!isSignup && (
-          <FormField label="Member ID number" htmlFor="memberIdNumber">
+          <FormField
+            label="Member ID number (door PIN)"
+            htmlFor="memberIdNumber"
+            error={errors.memberIdNumber}
+            hint="Digits only (1–9). The number the door device knows this member by."
+          >
             <TextInput
               id="memberIdNumber"
+              inputMode="numeric"
               value={form.memberIdNumber}
               onChange={update('memberIdNumber')}
-              placeholder="e.g. card/badge number"
+              placeholder="e.g. 1042"
+              error={errors.memberIdNumber}
             />
           </FormField>
         )}

@@ -25,6 +25,7 @@ import MemberListPage from './pages/members/MemberListPage'
 import MemberFormPage from './pages/members/MemberFormPage'
 import MemberDetailPage from './pages/members/MemberDetailPage'
 import MemberAttendencePage from './pages/members/MemberAttendencePage'
+import StaffAttendancePage from './pages/members/StaffAttendancePage'
 
 import PaymentsDashboardPage from './pages/payments/PaymentsDashboardPage'
 import MembershipListPage from './pages/payments/membership/MembershipListPage'
@@ -106,6 +107,7 @@ export default function App() {
                       <Route path="/members/:memberId" element={<MemberDetailPage />} />
                       <Route path="/members/:memberId/edit" element={<MemberFormPage />} />
                       <Route path="/members/attendence" element={<MemberAttendencePage />} />
+                    <Route path="/members/staff-attendance" element={<StaffAttendancePage />} />
 
                       <Route path="/payments" element={<PaymentsDashboardPage />} />
                       <Route path="/payments/membership" element={<MembershipListPage />} />

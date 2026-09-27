@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\MemberObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,6 +36,7 @@ use Laravel\Sanctum\HasApiTokens;
  * (users.member_id) and signs in as staff. Staff aren't gym members, so
  * they're left out of member lists (scopeNotStaff).
  */
+#[ObservedBy(MemberObserver::class)]
 class Member extends Authenticatable
 {
     use HasApiTokens;
@@ -60,6 +63,14 @@ class Member extends Authenticatable
         'join_date',
         'status',
         'notes',
+        // Door access (VFT device) — see AccessValidityService / MemberDeviceSync.
+        'access_valid_from',
+        'access_valid_until',
+        'access_note',
+        'device_sync_status',
+        'device_sync_error',
+        'device_synced_at',
+        'device_pin_synced',
     ];
 
     protected $casts = [
@@ -72,6 +83,9 @@ class Member extends Authenticatable
         // Auto-hashes on assignment (skips re-hashing if already hashed, so
         // this is safe alongside MemberController's explicit Hash::make()).
         'password'   => 'hashed',
+        'access_valid_from'  => 'date:Y-m-d',
+        'access_valid_until' => 'date:Y-m-d',
+        'device_synced_at'   => 'datetime',
     ];
 
     // membershipType/paymentStatus/todayAttendanceStatus are computed from
@@ -101,6 +115,14 @@ class Member extends Authenticatable
     public function staffAccount(): HasOne
     {
         return $this->hasOne(User::class);
+    }
+
+    /** The Member ID number, when it's usable as a device PIN (1–9 digits). */
+    public function devicePin(): ?string
+    {
+        $pin = trim((string) $this->member_id_number);
+
+        return preg_match('/^\d{1,9}$/', $pin) ? $pin : null;
     }
 
     /** Members who haven't been granted a staff role. */

@@ -65,6 +65,16 @@ return [
             'replace_placeholders' => true,
         ],
 
+        // VFT GYM API traffic (requests, raw responses, dry-run commands).
+        // Never contains the VFT password or token.
+        'vft' => [
+            'driver' => 'daily',
+            'path' => storage_path('logs/vft.log'),
+            'level' => env('LOG_LEVEL', 'debug'),
+            'days' => 30,
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

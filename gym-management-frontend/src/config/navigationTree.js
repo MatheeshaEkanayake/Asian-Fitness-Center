@@ -34,6 +34,7 @@ export const NAVIGATION_TREE = [
     permission: 'members.view',
     children: [
       { label: 'Attendence', path: '/members/attendence', permission: 'attendance.view' },
+      { label: 'Staff Attendance', path: '/members/staff-attendance', permission: 'attendance.view' },
       { label: 'Member Review', path: '/members/review', permission: 'members.review' }
     ],
   },

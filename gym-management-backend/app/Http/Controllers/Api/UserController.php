@@ -47,7 +47,7 @@ class UserController extends Controller
                 ->notStaff()
                 ->whereNotNull('username')
                 ->orderBy('full_name')
-                ->get(['id', 'full_name', 'username', 'email', 'status'])
+                ->get(['id', 'full_name', 'username', 'email', 'status', 'member_id_number'])
                 ->makeHidden(['membership_type', 'payment_status', 'today_attendance_status', 'payment_plan'])
         );
     }
@@ -67,8 +67,15 @@ class UserController extends Controller
     {
         $data = $request->validated();
         $data['status'] = $data['status'] ?? 'Active';
+        $pin = array_key_exists('member_id_number', $data) ? $data['member_id_number'] : false;
+        unset($data['member_id_number']);
 
         $user = User::create($data);
+
+        // The door PIN lives on their registration.
+        if ($pin !== false) {
+            $user->member->update(['member_id_number' => $pin]);
+        }
 
         // They're staff now, not a member: end any member-area sessions so
         // their next sign-in lands in the management app.
@@ -85,10 +92,14 @@ class UserController extends Controller
     {
         $data = $request->validated();
 
-        // A linked user's name and email belong to their registration.
+        // A linked user's name, email and door PIN belong to their registration.
         if ($user->member_id) {
             unset($data['full_name'], $data['email']);
+            if (array_key_exists('member_id_number', $data)) {
+                $user->member->update(['member_id_number' => $data['member_id_number']]);
+            }
         }
+        unset($data['member_id_number']);
 
         $user->update($data);
 

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Observers\UserObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -26,6 +28,7 @@ use Laravel\Sanctum\HasApiTokens;
  * seeded bootstrap admin and pre-registration accounts, which sign in with
  * their own email + password.
  */
+#[ObservedBy(UserObserver::class)]
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -45,7 +48,7 @@ class User extends Authenticatable
         'member',
     ];
 
-    protected $appends = ['username'];
+    protected $appends = ['username', 'member_id_number'];
 
     protected $casts = [
         'password' => 'hashed',
@@ -92,6 +95,12 @@ class User extends Authenticatable
     protected function username(): Attribute
     {
         return Attribute::get(fn () => $this->member?->username);
+    }
+
+    /** Their registration's Member ID number — also their door PIN. */
+    protected function memberIdNumber(): Attribute
+    {
+        return Attribute::get(fn () => $this->member?->member_id_number);
     }
 
     // -----------------------------------------------------------------------

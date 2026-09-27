@@ -27,6 +27,8 @@ class StoreUserRequest extends FormRequest
                 // Must be a registration (signed up with a username).
                 Rule::exists('members', 'id')->whereNotNull('username'),
             ],
+            // Door PIN, saved on their registration (members.member_id_number).
+            'member_id_number' => ['nullable', 'regex:/^\d{1,9}$/', Rule::unique('members', 'member_id_number')->ignore($this->input('member_id'))],
             'role_id'   => ['required', 'exists:roles,id'],
             'branch_id' => ['nullable', 'exists:branches,id'],
             'status'    => ['nullable', 'in:Active,Inactive'],
@@ -39,6 +41,8 @@ class StoreUserRequest extends FormRequest
             'member_id.required' => 'Select a registered person.',
             'member_id.exists'   => 'That person has not registered an account.',
             'member_id.unique'   => 'That person already has a staff role.',
+            'member_id_number.regex'  => 'Member ID number must be 1–9 digits (it is the door PIN).',
+            'member_id_number.unique' => 'That Member ID number is already used by someone else.',
             'role_id.required'   => 'Select a role.',
             'role_id.exists'     => 'Selected role does not exist.',
             'branch_id.exists'   => 'Selected branch does not exist.',

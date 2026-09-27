@@ -9,7 +9,7 @@ import Avatar from '../../components/shared/Avatar'
 import ConfirmDialog from '../../components/shared/ConfirmDialog'
 import EmptyState from '../../components/shared/EmptyState'
 import { Table, THead, Th, TBody, Tr, Td } from '../../components/shared/Table'
-import { formatCurrency, formatDate, formatPlan } from '../../utils/format'
+import { formatCurrency, formatDate, formatDateTime, formatPlan } from '../../utils/format'
 import { kgToLb, cmToFtIn, round } from '../../utils/units'
 
 const TABS = ['Profile', 'Payment history']
@@ -110,8 +110,10 @@ export default function MemberDetailPage() {
             <Field label="Join date" value={member.joinDate ? formatDate(member.joinDate) : null} />
           </Section>
 
+          <DoorAccessSection member={member} />
+
           <Section title="Personal">
-            <Field label="Member ID number" value={member.memberIdNumber} />
+            <Field label="Member ID number (door PIN)" value={member.memberIdNumber} />
             <Field label="NIC" value={member.nic} />
             <Field label="Date of birth" value={member.dob ? formatDate(member.dob) : null} />
             <Field label="Gender" value={member.gender} />
@@ -203,6 +205,51 @@ export default function MemberDetailPage() {
         loading={deactivating}
       />
     </div>
+  )
+}
+
+// Device sync results (MemberDeviceSync on the backend).
+const DEVICE_STATUS = {
+  synced: 'On the door device',
+  dry_run: 'Dry run — logged, not sent (VFT_MODE=log)',
+  failed: 'Last sync failed',
+  no_pin: 'Not on the device',
+  no_access: 'Not on the device — no active paid access',
+}
+
+function DoorAccessSection({ member }) {
+  const hasPin = /^\d{1,9}$/.test(member.memberIdNumber || '')
+  const validity =
+    member.accessValidUntil &&
+    `${member.accessValidFrom ? formatDate(member.accessValidFrom) : '…'} – ${formatDate(member.accessValidUntil)}`
+  const notes = [
+    !hasPin && 'Not on the door device — add a Member ID number (digits only) to put them on it.',
+    member.accessNote,
+    member.deviceSyncStatus === 'failed' && member.deviceSyncError,
+  ].filter(Boolean)
+
+  return (
+    <Section title="Door access">
+      <Field label="Access valid" value={validity || 'No paid access'} />
+      <Field
+        label="Door device"
+        value={
+          member.deviceSyncStatus
+            ? `${DEVICE_STATUS[member.deviceSyncStatus] || member.deviceSyncStatus}${
+                member.deviceSyncedAt ? ` · ${formatDateTime(member.deviceSyncedAt)}` : ''
+              }`
+            : 'Not synced yet'
+        }
+      />
+      {notes.map((note) => (
+        <div
+          key={note}
+          className="sm:col-span-2 rounded-md bg-[color:var(--color-amber-soft)] px-3 py-2 text-sm text-[color:var(--color-amber)]"
+        >
+          {note}
+        </div>
+      ))}
+    </Section>
   )
 }
 
