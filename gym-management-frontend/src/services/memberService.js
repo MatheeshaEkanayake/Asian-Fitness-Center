@@ -45,3 +45,8 @@ export function deactivateMember(memberId) {
 export function enrollOnDevice(memberId, input) {
   return apiClient.post(`/members/${memberId}/enroll`, input)
 }
+
+// { refreshError, enrollments: [{ kind: 'face'|'finger', fingerId, status: 'registered'|'pending'|'failed', returnCode, lastAttemptAt }] }
+export function getEnrollmentStatus(memberId) {
+  return apiClient.get(`/members/${memberId}/enrollments`)
+}

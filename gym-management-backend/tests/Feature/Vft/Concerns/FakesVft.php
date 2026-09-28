@@ -18,6 +18,9 @@ trait FakesVft
     /** @var list<array<string, mixed>> */
     protected array $vftEmployees = [];
 
+    /** @var list<array<string, mixed>> the device's command list (GET /api/devicecmd/TESTSN001) */
+    protected array $vftDeviceCommands = [];
+
     /** fn (string $call): ?PromiseInterface */
     protected ?Closure $vftFailure = null;
 
@@ -35,6 +38,7 @@ trait FakesVft
             return match ($call) {
                 'GET /api/template' => Http::response($this->vftEmployees),
                 'GET /api/device' => Http::response([['DevSN' => 'TESTSN001', 'Area' => ['AreaID' => 3, 'AreaName' => 'Gym']]]),
+                'GET /api/devicecmd/TESTSN001' => Http::response($this->vftDeviceCommands),
                 default => Http::response(['message' => 'Command added successfully']),
             };
         });

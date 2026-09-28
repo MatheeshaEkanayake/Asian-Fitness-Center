@@ -278,6 +278,7 @@ export default function UserFormPage() {
           <Card className="p-6">
             <EnrollOnDevice
               enroll={(input) => userService.enrollOnDevice(Number(userId), input)}
+              loadStatus={() => userService.getEnrollmentStatus(Number(userId))}
               disabledReason={
                 /^\d{1,9}$/.test(existing.memberIdNumber || '')
                   ? null

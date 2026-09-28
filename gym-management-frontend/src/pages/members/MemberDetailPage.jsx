@@ -254,6 +254,7 @@ function DoorAccessSection({ member }) {
       {hasPin && (
         <EnrollOnDevice
           enroll={(input) => memberService.enrollOnDevice(member.id, input)}
+          loadStatus={() => memberService.getEnrollmentStatus(member.id)}
           disabledReason={
             member.devicePinSynced === member.memberIdNumber || member.deviceSyncStatus === 'dry_run'
               ? null

@@ -51,14 +51,9 @@ function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleO
             onOpenSection()
             onActivateSection()
           }}
-          className={({ isActive }) => rowClasses(isActive && !anySectionActive)}
+          className={rowClasses(isActiveSection)}
         >
-          {({ isActive }) => (
-            <>
-              {iconWrap(isActive && !anySectionActive)}
-              {!collapsed && item.label}
-            </>
-          )}
+          {iconWrap(isActiveSection)}
         </button>
       </div>
     )

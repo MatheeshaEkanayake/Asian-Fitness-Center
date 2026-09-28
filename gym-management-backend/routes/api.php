@@ -83,6 +83,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::apiResource('users', UserController::class);
         Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword']);
         Route::post('users/{user}/enroll', [DeviceEnrollmentController::class, 'staff']);
+        Route::get('users/{user}/enrollments', [DeviceEnrollmentController::class, 'staffStatus']);
 
         Route::apiResource('roles', RoleController::class);
 
@@ -147,6 +148,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // POST   /api/members/{id}/enroll   → fingerprint/face enrollment on the door device
             Route::post('/enroll', [DeviceEnrollmentController::class, 'member'])->middleware('permission:members.edit');
+
+            // GET    /api/members/{id}/enrollments → which face/fingers are registered on the device
+            Route::get('/enrollments', [DeviceEnrollmentController::class, 'memberStatus'])->middleware('permission:members.view');
 
             // DELETE /api/members/{id}          → deactivateMember(memberId)
             //   (soft-delete: sets status to Inactive, preserves payment history)

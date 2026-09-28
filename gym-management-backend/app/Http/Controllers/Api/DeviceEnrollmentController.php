@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Member;
 use App\Models\User;
+use App\Services\Vft\EnrollmentStatus;
 use App\Services\Vft\VftApiException;
 use App\Services\Vft\VftDeviceCommandService;
 use Illuminate\Http\JsonResponse;
@@ -17,8 +18,11 @@ use Illuminate\Http\Request;
  *
  *   POST /api/members/{member}/enroll       (members.edit)
  *   POST /api/setup/users/{user}/enroll     (setup.manage — staff)
+ *   Body: { type: "finger" | "face", finger_id: 0–9 (finger only) }
  *
- * Body: { type: "finger" | "face", finger_id: 0–9 (finger only) }
+ * And reports what is registered so far (see EnrollmentStatus):
+ *   GET  /api/members/{member}/enrollments  (members.view)
+ *   GET  /api/setup/users/{user}/enrollments (setup.manage)
  */
 class DeviceEnrollmentController extends Controller
 {
@@ -32,6 +36,33 @@ class DeviceEnrollmentController extends Controller
         abort_unless($user->member, 422, 'This staff account has no registration, so it has no door PIN.');
 
         return $this->enroll($request, $user->member, $commands);
+    }
+
+    public function memberStatus(Member $member, EnrollmentStatus $status): JsonResponse
+    {
+        return $this->status($member, $status);
+    }
+
+    public function staffStatus(User $user, EnrollmentStatus $status): JsonResponse
+    {
+        abort_unless($user->member, 422, 'This staff account has no registration, so it has no door PIN.');
+
+        return $this->status($user->member, $status);
+    }
+
+    private function status(Member $person, EnrollmentStatus $status): JsonResponse
+    {
+        $pin = $person->devicePin();
+        if (! $pin) {
+            return response()->json(['refreshError' => null, 'enrollments' => []]);
+        }
+
+        $error = $status->refresh();
+
+        return response()->json([
+            'refreshError' => $error ? 'Could not reach the door device service, showing the last known status.' : null,
+            'enrollments' => $status->forPin($pin),
+        ]);
     }
 
     private function enroll(Request $request, Member $person, VftDeviceCommandService $commands): JsonResponse
