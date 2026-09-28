@@ -9,6 +9,7 @@
 //   updateUser(id, updates)      → PUT    /api/setup/users/{id}
 //   resetUserPassword(id, pw)    → POST   /api/setup/users/{id}/reset-password
 //   deactivateUser(id)           → DELETE /api/setup/users/{id}  (status → Inactive)
+//   enrollOnDevice(id, input)    → POST   /api/setup/users/{id}/enroll (fingerprint/face on the door device)
 
 import { apiClient } from './apiClient'
 
@@ -35,4 +36,9 @@ export function resetUserPassword(userId, password) {
 
 export function deactivateUser(userId) {
   return apiClient.delete(`/setup/users/${userId}`)
+}
+
+// input: { type: 'finger', fingerId: 0–9 } or { type: 'face' }
+export function enrollOnDevice(userId, input) {
+  return apiClient.post(`/setup/users/${userId}/enroll`, input)
 }

@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Every door punch pulled from the device (vft:sync-attendance), kept raw.
+ * Every door punch received from VFT (webhook, see VftWebhookController), kept raw.
  * The unique key is what stops a re-sync from importing the same punch
  * twice. Punches are then summarised into `attendance` (members) or
  * `staff_attendance` (staff). punched_at is device local time.

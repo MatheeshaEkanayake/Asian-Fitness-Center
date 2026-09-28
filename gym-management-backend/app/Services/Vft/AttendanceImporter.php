@@ -14,8 +14,8 @@ use Illuminate\Support\Facades\DB;
  *
  * - Every punch is stored once in `device_punches` (unique on device + PIN +
  *   time), so re-syncing the same transactions never double-counts.
- * - Only "came in" events count (config vft.attendance_event_types; rows
- *   with no event type are counted).
+ * - Every punch counts except the `Event` codes in
+ *   config vft.attendance_excluded_events.
  * - PIN = Member ID number. Members → `attendance`; staff registrations →
  *   `staff_attendance`. Unknown PINs are kept in device_punches only.
  * - One row per person per day: earliest punch = check-in, latest =
@@ -32,10 +32,10 @@ class AttendanceImporter
     public function import(string $devSn, array $punches): array
     {
         $stats = ['new' => 0, 'duplicate' => 0, 'members' => 0, 'staff' => 0, 'unknown' => 0, 'ignored' => 0];
-        $countedTypes = config('vft.attendance_event_types');
+        $excluded = config('vft.attendance_excluded_events');
 
         foreach ($punches as $punch) {
-            DB::transaction(function () use ($devSn, $punch, $countedTypes, &$stats) {
+            DB::transaction(function () use ($devSn, $punch, $excluded, &$stats) {
                 $member = Member::with('staffAccount')->where('member_id_number', $punch['pin'])->first();
                 $staff = $member?->staffAccount;
 
@@ -61,7 +61,7 @@ class AttendanceImporter
 
                 $stats['new']++;
 
-                if ($punch['event_type'] !== null && ! in_array($punch['event_type'], $countedTypes, true)) {
+                if ($punch['event_type'] !== null && in_array($punch['event_type'], $excluded, true)) {
                     $stats['ignored']++;
 
                     return;

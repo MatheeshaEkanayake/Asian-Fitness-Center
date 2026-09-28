@@ -100,8 +100,9 @@ class AttendanceImporterTest extends TestCase
         $this->assertSame($user->id, DevicePunch::first()->user_id);
     }
 
-    public function test_denied_events_and_unknown_pins_are_stored_but_not_counted(): void
+    public function test_excluded_events_and_unknown_pins_are_stored_but_not_counted(): void
     {
+        config(['vft.attendance_excluded_events' => ['27']]);
         $this->member(['member_id_number' => '42']);
 
         $stats = app(AttendanceImporter::class)->import('SN1', [
@@ -112,6 +113,17 @@ class AttendanceImporterTest extends TestCase
         $this->assertSame(['new' => 2, 'duplicate' => 0, 'members' => 0, 'staff' => 0, 'unknown' => 1, 'ignored' => 1], $stats);
         $this->assertSame(0, Attendance::count());
         $this->assertSame(2, DevicePunch::count());
+    }
+
+    public function test_every_event_counts_when_nothing_is_excluded(): void
+    {
+        config(['vft.attendance_excluded_events' => []]);
+        $this->member(['member_id_number' => '42']);
+
+        $stats = app(AttendanceImporter::class)->import('SN1', [$this->punch('42', '2026-10-15 06:30:00', '3')]);
+
+        $this->assertSame(1, $stats['members']);
+        $this->assertSame(0, $stats['ignored']);
     }
 
     public function test_member_without_email_can_get_attendance(): void

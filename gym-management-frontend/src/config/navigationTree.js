@@ -12,14 +12,18 @@ import { FaRegCreditCard, FaPeopleRobbery, FaBoxOpen } from 'react-icons/fa6'
 import { SiMealie } from "react-icons/si";
 
 
+// A node with `children` is a dropdown only: clicking it opens its list and
+// goes nowhere, so it carries `match` (the URL prefix its section lives under,
+// used for highlighting and breadcrumbs) instead of a navigable `path`.
 export const NAVIGATION_TREE = [
   { label: 'Dashboard', path: '/', end: true, icon: BsGrid, permission: 'dashboard.view' },
   {
     label: 'Payment',
-    path: '/payments',
+    match: '/payments',
     icon: FaRegCreditCard,
     permission: 'payments.view',
     children: [
+      { label: 'Payment Summary', path: '/payments/summary', permission: 'payments.view' },
       { label: 'Membership Payment', path: '/payments/membership', permission: 'payments.view' },
       { label: 'Stock Payments', path: '/payments/Stock/payments', permission: 'payments.view' },
       { label: 'Stock Sales', path: '/payments/Stock/sales', permission: 'payments.view' },
@@ -29,10 +33,12 @@ export const NAVIGATION_TREE = [
   },
   {
     label: 'Members',
-    path: '/members',
+    match: '/members',
     icon: BsPeopleFill,
     permission: 'members.view',
     children: [
+      { label: 'All Members', path: '/members/all', permission: 'members.view' },
+      { label: 'Guests', path: '/members/guests', permission: 'members.view' },
       { label: 'Attendence', path: '/members/attendence', permission: 'attendance.view' },
       { label: 'Staff Attendance', path: '/members/staff-attendance', permission: 'attendance.view' },
       { label: 'Member Review', path: '/members/review', permission: 'members.review' }
@@ -40,7 +46,7 @@ export const NAVIGATION_TREE = [
   },
   {
     label: 'Inventory',
-    path: '/inventory',
+    match: '/inventory',
     icon: FaBoxOpen,
     permission: 'inventory.view',
     children: [
@@ -73,6 +79,14 @@ export const NAVIGATION_TREE = [
 ]
 
 /**
+ * Sidebar for signed-in members and guests (the /member area). They have no
+ * permissions, so these items carry none — SidePanel shows them as-is.
+ */
+export const MEMBER_NAVIGATION_TREE = [
+  { label: 'Dashboard', path: '/member', end: true, icon: BsGrid },
+]
+
+/**
  * Setup's sections, rendered as tiles on SetupPage.jsx instead of a sidebar
  * dropdown. Kept separate from NAVIGATION_TREE since these are no longer
  * sidebar nodes, just page content — but getPermissionForPath's existing
@@ -93,6 +107,15 @@ export const SETUP_TILES = [
 
 function flatten(nodes) {
   return nodes.flatMap((node) => [node, ...(node.children ? flatten(node.children) : [])])
+}
+
+/**
+ * The URL prefix a node owns: its own `path` for links, or its `match` for
+ * dropdown parents that have no page of their own. Doubles as a stable React
+ * key and as the identity of the currently-open sidebar section.
+ */
+export function navPrefix(node) {
+  return node.path ?? node.match
 }
 
 /**
@@ -124,8 +147,8 @@ export function getPageMeta(path) {
   const treeMatch =
     exact ||
     flat
-      .filter((node) => node.path !== '/' && path.startsWith(node.path))
-      .sort((a, b) => b.path.length - a.path.length)[0]
+      .filter((node) => navPrefix(node) !== '/' && path.startsWith(navPrefix(node)))
+      .sort((a, b) => navPrefix(b).length - navPrefix(a).length)[0]
 
   // SETUP_TILES isn't part of NAVIGATION_TREE (Setup has no children
   // anymore), so it's checked separately — whichever match has the longer,
@@ -134,7 +157,7 @@ export function getPageMeta(path) {
     (a, b) => b.path.length - a.path.length
   )[0]
 
-  const useTileMatch = tileMatch && (!treeMatch || tileMatch.path.length > treeMatch.path.length)
+  const useTileMatch = tileMatch && (!treeMatch || tileMatch.path.length > navPrefix(treeMatch).length)
 
   if (useTileMatch) {
     return { title: tileMatch.label, breadcrumb: `Setup / ${tileMatch.label}` }

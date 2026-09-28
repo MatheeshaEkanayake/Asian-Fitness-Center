@@ -7,36 +7,30 @@ use App\Services\Vft\VftDeviceCommandService;
 use Illuminate\Console\Command;
 
 /**
- * Unlocks a door for a few seconds — a quick end-to-end test that commands
- * reach the physical device. Asks for confirmation.
+ * Unlocks the door — a quick end-to-end test that commands reach the
+ * physical device. Asks for confirmation in live mode.
  */
 class VftOpenDoor extends Command
 {
-    protected $signature = 'vft:open-door
-        {door=1 : Door number}
-        {--seconds=5 : How long to keep it unlocked}';
+    protected $signature = 'vft:open-door {--device= : Device serial number (default: VFT_DEFAULT_DEVICE_SN)}';
 
-    protected $description = 'Unlock a door on the device for a few seconds';
+    protected $description = 'Unlock the door on the device';
 
     public function handle(VftDeviceCommandService $commands): int
     {
-        $door = (int) $this->argument('door');
-        $seconds = (int) $this->option('seconds');
-
-        if ($commands->mode() === 'live'
-            && ! $this->confirm("Unlock door {$door} for {$seconds}s on the real device?")) {
+        if ($commands->mode() === 'live' && ! $this->confirm('Unlock the door on the real device?')) {
             return self::SUCCESS;
         }
 
         try {
-            $result = $commands->openDoor($door, $seconds);
+            $result = $commands->openDoor($this->option('device'));
         } catch (VftApiException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
         }
 
-        $this->line("Command: {$result->content} → ".($result->sent ? 'sent' : "not sent (VFT_MODE={$result->mode})"));
+        $this->line("{$result->describe()} on {$result->devSn} → ".($result->sent ? 'sent' : "not sent (VFT_MODE={$result->mode})"));
         if ($result->sent) {
             $this->line(json_encode($result->response, JSON_UNESCAPED_SLASHES));
         }

@@ -6,6 +6,7 @@ const STATUS_STYLES = {
 
   Pending: 'bg-[color:var(--color-amber-soft)] text-[color:var(--color-amber)]',
   Suspended: 'bg-[color:var(--color-amber-soft)] text-[color:var(--color-amber)]',
+  Guest: 'bg-[color:var(--color-amber-soft)] text-[color:var(--color-amber)]',
   Paused: 'bg-[color:var(--color-amber-soft)] text-[color:var(--color-amber)]',
   Overdue: 'bg-[color:var(--color-amber-soft)] text-[color:var(--color-amber)]',
   Late: 'bg-[color:var(--color-amber-soft)] text-[color:var(--color-amber)]',

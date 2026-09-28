@@ -5,6 +5,7 @@
 //   updateMember(id, updates)   → PUT    /api/members/{id}
 //   setMemberStatus(id, status) → PATCH  /api/members/{id}/status
 //   deactivateMember(memberId)  → DELETE /api/members/{id}  (soft: status → Inactive)
+//   enrollOnDevice(id, input)   → POST   /api/members/{id}/enroll  (fingerprint/face on the door device)
 //
 // NOTE: this file previously operated on the in-memory src/services/db.js mock
 // store; it now calls the real Laravel API via apiClient (same pattern as
@@ -38,4 +39,9 @@ export function setMemberStatus(memberId, status) {
 // history stays intact. See flow spec §3.3 / §5.
 export function deactivateMember(memberId) {
   return apiClient.delete(`/members/${memberId}`)
+}
+
+// input: { type: 'finger', fingerId: 0–9 } or { type: 'face' }
+export function enrollOnDevice(memberId, input) {
+  return apiClient.post(`/members/${memberId}/enroll`, input)
 }

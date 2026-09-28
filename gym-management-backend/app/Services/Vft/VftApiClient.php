@@ -10,25 +10,30 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 /**
- * HTTP client for the VFT GYM API (config/vft.php).
+ * HTTP client for the VFT GYM API — endpoints as in the VFT_GYM_API_V2.0
+ * Postman collection (docs/). One method per endpoint; VftDeviceCommandService
+ * decides what to call and respects VFT_MODE.
  *
  * - Signs in with VFT_EMAIL/VFT_PASSWORD and caches the token until shortly
  *   before it expires (tokens last ~1 hour; the JWT `exp` is in milliseconds).
  * - On a 401 it signs in again once and retries the request.
+ * - VFT answers some failures with HTTP 200 and a message such as "Cannot
+ *   delete Employee with id=166. The Employee was not found!" — those are
+ *   treated as failures too (see failureMessage()).
  * - Retries connection failures only; any other failure throws
  *   VftApiException.
  * - Logs every request and raw response to the `vft` log channel. The
  *   password and token are never logged.
  *
- * The live server's /api/user/auth endpoint rejects valid tokens, so token
- * validity is judged from its expiry and 401s instead.
+ * VFT calls the people on the device "employees" (the /api/template
+ * endpoints); their EmpId is our Member ID number (the door PIN).
  */
 class VftApiClient
 {
     public const TOKEN_CACHE_KEY = 'vft.api_token';
 
     // ---------------------------------------------------------------------
-    // Resources
+    // Areas and devices
     // ---------------------------------------------------------------------
 
     public function listAreas(): mixed
@@ -36,7 +41,7 @@ class VftApiClient
         return $this->request('GET', '/api/area');
     }
 
-    /** @param array{AreaID?: string, AreaName: string, Description?: string} $area */
+    /** @param array{AreaName: string, Description?: string} $area */
     public function createArea(array $area): mixed
     {
         return $this->request('POST', '/api/area', $area);
@@ -52,48 +57,125 @@ class VftApiClient
         return $this->request('GET', '/api/device');
     }
 
-    /** @param array{DevSN: string, DevName: string, TimeZone: string, AreaID: int, IsReboot?: int} $device */
-    public function createDevice(array $device): mixed
+    /** @param array{DevName?: string, AreaID?: int} $device */
+    public function updateDevice(string $devSn, array $device): mixed
     {
-        return $this->request('POST', '/api/device', $device);
+        return $this->request('PUT', '/api/device/'.rawurlencode($devSn), $device);
     }
 
-    public function updateDevice(int|string $id, array $device): mixed
-    {
-        return $this->request('PUT', "/api/device/{$id}", $device);
-    }
+    // ---------------------------------------------------------------------
+    // Employees (people on the device)
+    // ---------------------------------------------------------------------
 
-    /** VFT calls these "employees" (the /api/template endpoints). */
     public function listEmployees(): mixed
     {
         return $this->request('GET', '/api/template');
     }
 
-    /** @param array{EmpId: string, EmpName: string} $employee */
+    /** @param array{EmpId: string, EmpName: string, AreaID: int} $employee */
     public function createEmployee(array $employee): mixed
     {
         return $this->request('POST', '/api/template/add', $employee);
     }
 
-    public function updateEmployee(int|string $id, array $employee): mixed
+    /** @param array{EmpName: string} $employee */
+    public function updateEmployee(string $empId, array $employee): mixed
     {
-        return $this->request('PUT', "/api/template/edit/{$id}", $employee);
+        return $this->request('PUT', '/api/template/edit/'.rawurlencode($empId), $employee);
+    }
+
+    /** Remove from the VFT cloud. */
+    public function deleteEmployee(string $empId): mixed
+    {
+        return $this->request('DELETE', '/api/template/'.rawurlencode($empId));
+    }
+
+    /** Remove from every device (user and fingerprints/face). */
+    public function deleteEmployeeFromDevices(string $empId): mixed
+    {
+        return $this->request('DELETE', '/api/template/fromdev/'.rawurlencode($empId));
     }
 
     /**
-     * Send a raw ZKTeco command. Use VftDeviceCommandService instead of
-     * calling this directly — it builds and escapes the command strings.
+     * Copy employees (with their fingerprints/face) from the cloud to one
+     * device — the collection's "TransferUserToDevice".
      *
-     * It's not yet known whether VFT returns results here or only queues
-     * the command for the device; the raw response is returned and logged.
+     * @param  string[]  $empIds
      */
-    public function sendDeviceCommand(string $devSn, string $content, string $type = 'General'): mixed
+    public function syncEmployeesToDevice(string $devSn, array $empIds): mixed
     {
-        return $this->request('POST', '/api/devicecmd', [
+        return $this->request('POST', '/api/template/syncsometoone', query: [
             'DevSN' => $devSn,
-            'Type' => $type,
-            'Content' => $content,
+            'empidlist' => implode(',', $empIds),
         ]);
+    }
+
+    // ---------------------------------------------------------------------
+    // Door access (queued for the device)
+    // ---------------------------------------------------------------------
+
+    /** Dates as YYYYMMDD; "0" = no limit. */
+    public function setValidPeriod(string $devSn, string $empId, string $startDate, string $endDate): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/validperiod', query: [
+            'DevSN' => $devSn,
+            'EmployeeId' => $empId,
+            'StartDate' => $startDate,
+            'EndDate' => $endDate,
+        ]);
+    }
+
+    public function grantAccess(string $devSn, string $empId): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/accessgrant', query: ['DevSN' => $devSn, 'EmployeeId' => $empId]);
+    }
+
+    public function blockAccess(string $devSn, string $empId): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/accessblock', query: ['DevSN' => $devSn, 'EmployeeId' => $empId]);
+    }
+
+    public function openDoor(string $devSn): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/dooropen', query: ['DevSN' => $devSn]);
+    }
+
+    public function rebootDevice(string $devSn): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/reboot', query: ['DevSN' => $devSn]);
+    }
+
+    // ---------------------------------------------------------------------
+    // Enrollment — puts the device into scan mode for that person
+    // ---------------------------------------------------------------------
+
+    /** @param int $fingerId 0–9 */
+    public function enrollFinger(string $devSn, string $empId, int $fingerId): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/enrollfinger', query: [
+            'DevSN' => $devSn,
+            'employeeId' => $empId,
+            'fingerId' => $fingerId,
+        ]);
+    }
+
+    public function enrollFace(string $devSn, string $empId): mixed
+    {
+        return $this->request('POST', '/api/devicecmd/enrollface', query: ['DevSN' => $devSn, 'employeeId' => $empId]);
+    }
+
+    // ---------------------------------------------------------------------
+    // Queued commands
+    // ---------------------------------------------------------------------
+
+    public function listCommands(int $limit = 20, int $page = 1): mixed
+    {
+        return $this->request('GET', '/api/devicecmd/limit', query: ['limit' => $limit, 'page' => $page]);
+    }
+
+    public function listDeviceCommands(string $devSn): mixed
+    {
+        return $this->request('GET', '/api/devicecmd/'.rawurlencode($devSn));
     }
 
     // ---------------------------------------------------------------------
@@ -169,8 +251,9 @@ class VftApiClient
      * Authenticated request. Returns the decoded JSON, or the raw body when
      * the response isn't JSON (e.g. plain-text replies).
      */
-    public function request(string $method, string $path, array $data = []): mixed
+    public function request(string $method, string $path, array $data = [], array $query = []): mixed
     {
+        $path = $query ? $path.'?'.http_build_query($query) : $path;
         $this->log()->info("→ {$method} {$path}", $data ? ['body' => $data] : []);
 
         $response = $this->send($method, $path, $data);
@@ -183,17 +266,44 @@ class VftApiClient
 
         $this->logResponse($path, $response);
 
+        $json = $response->json();
+
         if (! $response->successful()) {
+            $reason = is_array($json) && is_string($json['message'] ?? null) ? ": {$json['message']}" : '';
+
             throw new VftApiException(
-                "VFT {$method} {$path} failed with HTTP {$response->status()}.",
+                "VFT {$method} {$path} failed with HTTP {$response->status()}{$reason}.",
                 $response->status(),
                 Str::limit($response->body(), 500),
             );
         }
 
-        $json = $response->json();
+        if ($failure = $this->failureMessage($json)) {
+            throw new VftApiException(
+                "VFT {$method} {$path} failed: {$failure}",
+                $response->status(),
+                Str::limit($response->body(), 500),
+            );
+        }
 
         return $json ?? $response->body();
+    }
+
+    /**
+     * VFT reports some failures with HTTP 200, e.g.
+     * {"message": "Cannot delete Employee with id=166. The Employee was not found!"}.
+     */
+    private function failureMessage(mixed $json): ?string
+    {
+        $message = is_array($json) ? ($json['message'] ?? $json['error'] ?? null) : null;
+
+        if (! is_string($message)) {
+            return null;
+        }
+
+        return preg_match('/\b(cannot|can\'t|not found|error|fail(ed|ure)?|invalid|unauthori[sz]ed|denied)\b/i', $message)
+            ? $message
+            : null;
     }
 
     private function send(string $method, string $path, array $data, bool $withToken = true): Response

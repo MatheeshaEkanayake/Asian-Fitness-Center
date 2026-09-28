@@ -7,11 +7,14 @@
  * (App\Services\Vft\VftApiClient), which forwards commands to the device
  * when it next checks in.
  *
+ * Endpoints follow the VFT_GYM_API_V2.0 Postman collection
+ * (docs/VFT_GYM_API_V2.0.postman_collection (5).json).
+ *
  * VFT_MODE controls whether anything is actually sent:
  *   off  — nothing is queued or sent (the app works exactly as before)
- *   log  — device commands are built and written to storage/logs/vft.log,
- *          but not sent (dry run, useful while the device is offline)
- *   live — commands are sent to VFT
+ *   log  — device actions are written to storage/logs/vft.log but not sent
+ *          (dry run, useful while the device is offline)
+ *   live — actions are sent to VFT
  */
 return [
 
@@ -22,8 +25,7 @@ return [
     'email' => env('VFT_EMAIL'),
     'password' => env('VFT_PASSWORD'),
 
-    // The doc uses both `apitoken` and `ApiToken`; the live server accepts
-    // `ApiToken`.
+    // Header the sign-in token is sent in (VFT_GYM_API_V2.0 collection).
     'token_header' => env('VFT_TOKEN_HEADER', 'ApiToken'),
 
     // Serial number of the door device (Menu › System Info on the device,
@@ -43,13 +45,22 @@ return [
     // are recorded in it.
     'timezone' => env('VFT_TIMEZONE', 'Asia/Colombo'),
 
-    // Door access granted to members/staff (ZKTeco access-control ids).
-    'door_id' => (int) env('VFT_DOOR_ID', 1),
-    'access_timezone_id' => (int) env('VFT_ACCESS_TIMEZONE_ID', 1),
-    'user_group' => (int) env('VFT_USER_GROUP', 1),
+    // Punches arrive by webhook: VFT POSTs them to
+    //   {APP_URL}/api/vft/webhook/{VFT_WEBHOOK_SECRET}
+    // (register that URL in the VFT portal). Without a secret the webhook
+    // is switched off and answers 404.
+    'webhook_secret' => env('VFT_WEBHOOK_SECRET'),
 
-    // Transaction event types that count as "came in" for attendance.
-    // 0 = normal verify & open. Denied attempts use other codes.
-    'attendance_event_types' => array_filter(explode(',', env('VFT_ATTENDANCE_EVENT_TYPES', '0')), 'strlen'),
+    // Every punch counts as attendance except these `Event` codes (VFT
+    // hasn't documented them yet; each punch's raw codes are kept in
+    // device_punches so this list can be filled in from real data).
+    'attendance_excluded_events' => array_values(array_filter(
+        array_map('trim', explode(',', (string) env('VFT_ATTENDANCE_EXCLUDED_EVENTS', ''))),
+        'strlen',
+    )),
+
+    // How long the default device's area id (looked up from GET /api/device)
+    // is cached. New people are added to that area.
+    'area_cache_seconds' => (int) env('VFT_AREA_CACHE_SECONDS', 86400),
 
 ];

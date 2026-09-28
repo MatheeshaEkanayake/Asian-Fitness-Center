@@ -30,7 +30,7 @@ export default function DashboardPage() {
           <p className="text-sm text-[color:var(--color-ink-soft)] mb-4">
             {members.length} total member profile{members.length === 1 ? '' : 's'} on file.
           </p>
-          <Button variant="secondary" onClick={() => navigate('/members')}>
+          <Button variant="secondary" onClick={() => navigate('/members/all')}>
             Go to members
           </Button>
         </Card>
@@ -43,7 +43,7 @@ export default function DashboardPage() {
           <p className="text-sm text-[color:var(--color-ink-soft)] mb-4">
             {summary ? `${summary.pendingCount} payment${summary.pendingCount === 1 ? '' : 's'} pending.` : ''}
           </p>
-          <Button variant="secondary" onClick={() => navigate('/payments')}>
+          <Button variant="secondary" onClick={() => navigate('/payments/summary')}>
             Go to payments
           </Button>
         </Card>

@@ -24,6 +24,9 @@ class VftCheck extends Command
         $this->line('Server:        '.config('vft.base_url'));
         $this->line('Account:       '.(config('vft.email') ?: '<error>VFT_EMAIL not set</error>'));
         $this->line('Default device '.($defaultSn ?: '<error>VFT_DEFAULT_DEVICE_SN not set</error>'));
+        $this->line('Webhook URL:   '.(config('vft.webhook_secret')
+            ? rtrim(config('app.url'), '/').'/api/vft/webhook/'.config('vft.webhook_secret')
+            : '<comment>off (VFT_WEBHOOK_SECRET not set)</comment>'));
         $this->newLine();
 
         try {

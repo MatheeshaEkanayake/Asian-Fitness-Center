@@ -4,20 +4,16 @@ import { BsChevronDown } from 'react-icons/bs'
 import { FiMenu, FiChevronLeft, FiX, FiLogOut } from 'react-icons/fi'
 import { useAuth } from '../context/AuthContext'
 import { useBranding } from '../context/BrandingContext'
-import { NAVIGATION_TREE, getPageMeta } from '../config/navigationTree'
+import { NAVIGATION_TREE, MEMBER_NAVIGATION_TREE, getPageMeta, navPrefix } from '../config/navigationTree'
 import { initials } from '../utils/format'
 import ConfirmDialog from '../components/shared/ConfirmDialog'
 import ThemeToggle from '../components/shared/ThemeToggle'
 
-function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleOpen }) {
-  const location = useLocation()
-  const navigate = useNavigate()
-
-  const visibleChildren = (item.children || []).filter((child) => hasPermission(child.permission))
+function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleOpen, onOpenSection, onExpandSidebar, isActiveSection, onActivateSection, anySectionActive, onSelectStandalone }) {
+  const visibleChildren = (item.children || []).filter((child) => !child.permission || hasPermission(child.permission))
   const hasChildren = visibleChildren.length > 0
-  const containsActiveChild = visibleChildren.some((child) => location.pathname.startsWith(child.path))
 
-  if (!hasPermission(item.permission)) return null
+  if (item.permission && !hasPermission(item.permission)) return null
 
   const rowClasses = (active) =>
     `group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
@@ -40,23 +36,29 @@ function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleO
     </span>
   )
 
-  // Collapsed rail: a parent with children just navigates (no room to show
-  // a nested list), while leaf items stay real NavLinks so ctrl/middle-click
-  // still works.
+  // Collapsed rail: a parent has no page to open and no room for its list, so
+  // its icon widens the sidebar back out with that section expanded. Leaf
+  // items stay real NavLinks so ctrl/middle-click still works.
   if (collapsed && hasChildren) {
-    const active = containsActiveChild || location.pathname.startsWith(item.path)
     return (
       <div className="mb-1">
         <button
           type="button"
           title={item.label}
+          aria-expanded={false}
           onClick={() => {
-            navigate(item.path)
-            onNavigate?.()
+            onExpandSidebar?.()
+            onOpenSection()
+            onActivateSection()
           }}
-          className={rowClasses(active)}
+          className={({ isActive }) => rowClasses(isActive && !anySectionActive)}
         >
-          {iconWrap(active)}
+          {({ isActive }) => (
+            <>
+              {iconWrap(isActive && !anySectionActive)}
+              {!collapsed && item.label}
+            </>
+          )}
         </button>
       </div>
     )
@@ -69,12 +71,15 @@ function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleO
           to={item.path}
           end={item.end}
           title={collapsed ? item.label : undefined}
-          onClick={() => onNavigate?.()}
-          className={({ isActive }) => rowClasses(isActive)}
+          onClick={() => {
+            onSelectStandalone()
+            onNavigate?.()
+          }}
+          className={({ isActive }) => rowClasses(isActive && !anySectionActive)}
         >
           {({ isActive }) => (
             <>
-              {iconWrap(isActive)}
+              {iconWrap(isActive && !anySectionActive)}
               {!collapsed && item.label}
             </>
           )}
@@ -83,24 +88,18 @@ function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleO
     )
   }
 
-  // "You are here" when exactly on the parent's own page, regardless of
-  // expand state; when a listed child route is active its own NavLink
-  // already shows that, so the parent only doubles up when collapsed.
-  const isOwnPathActive = location.pathname === item.path
-  const parentActive = isOwnPathActive || (containsActiveChild && !isOpen)
-
   return (
     <div className="mb-1">
       <button
         type="button"
+        aria-expanded={isOpen}
         onClick={() => {
-          navigate(item.path)
           onToggleOpen()
-          onNavigate?.()
+          onActivateSection()
         }}
-        className={rowClasses(parentActive)}
+        className={rowClasses(isActiveSection)}
       >
-        {iconWrap(parentActive)}
+        {iconWrap(isActiveSection)}
         <span className="flex-1 text-left">{item.label}</span>
         <BsChevronDown className={`h-3.5 w-3.5 text-white/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -131,25 +130,45 @@ function NavItem({ item, hasPermission, collapsed, onNavigate, isOpen, onToggleO
 // behaviorally identical. `collapsed` only ever applies to the desktop rail.
 function SidebarContent({
   collapsed,
+  navigation,
   hasPermission,
   user,
+  roleLabel,
   onLogoutClick,
   showBrandToggle,
   brandToggleIcon,
   onBrandToggle,
   onNavigate,
+  onExpandSidebar,
 }) {
   const location = useLocation()
   const { branding } = useBranding()
 
-  // Only one parent's children are shown at a time (accordion) — start with
-  // whichever section the current route falls under, if any.
-  const [openPath, setOpenPath] = useState(() => {
-    const match = NAVIGATION_TREE.find((item) =>
-      (item.children || []).some((child) => location.pathname.startsWith(child.path))
+  // Which section the current route falls under, if any — the starting
+  // point for both which list is expanded and which parent shows active.
+  const sectionForPath = (pathname) => {
+    const match = navigation.find(
+      (item) =>
+        item.children?.length &&
+        (pathname.startsWith(navPrefix(item)) || item.children.some((child) => pathname.startsWith(child.path)))
     )
-    return match?.path ?? null
-  })
+    return match ? navPrefix(match) : null
+  }
+
+  // Only one parent's children are shown at a time (accordion).
+  const [openKey, setOpenKey] = useState(() => sectionForPath(location.pathname))
+
+  // Which parent button reads as "active". Unlike openKey, this doesn't
+  // reset when a section's list is collapsed — it only changes when another
+  // parent is clicked or navigation lands somewhere else (including a
+  // standalone item, which clears it). Clicking a parent button doesn't
+  // navigate by itself, so that click also has to set this directly —
+  // route-based derivation alone would miss it.
+  const [activeKey, setActiveKey] = useState(() => sectionForPath(location.pathname))
+  useEffect(() => {
+    setActiveKey(sectionForPath(location.pathname))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.pathname])
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-gradient-to-b from-[#0b1220] via-[#1b1f23] to-[#0b1324] text-white">
@@ -196,15 +215,26 @@ function SidebarContent({
           of the list — the last item can always be scrolled clear of it. */}
       <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-y-auto">
         <nav className="flex-1 px-2.5 pt-2 pb-3">
-          {NAVIGATION_TREE.map((item) => (
+          {navigation.map((item) => (
             <NavItem
-              key={item.path}
+              key={navPrefix(item)}
               item={item}
               hasPermission={hasPermission}
               collapsed={collapsed}
               onNavigate={onNavigate}
-              isOpen={openPath === item.path}
-              onToggleOpen={() => setOpenPath((prev) => (prev === item.path ? null : item.path))}
+              isOpen={openKey === navPrefix(item)}
+              onToggleOpen={() =>
+                setOpenKey((prev) => (prev === navPrefix(item) ? null : navPrefix(item)))
+              }
+              onOpenSection={() => setOpenKey(navPrefix(item))}
+              onExpandSidebar={onExpandSidebar}
+              isActiveSection={activeKey === navPrefix(item)}
+              onActivateSection={() => setActiveKey(navPrefix(item))}
+              anySectionActive={activeKey !== null}
+              onSelectStandalone={() => {
+                setOpenKey(null)
+                setActiveKey(null)
+              }}
             />
           ))}
         </nav>
@@ -221,7 +251,7 @@ function SidebarContent({
             {!collapsed && (
               <div className="min-w-0">
                 <p className="truncate text-xs font-semibold text-white">{user?.fullName || 'Unknown'}</p>
-                {user?.role && <p className="truncate text-[0.6875rem] text-white/45">{user.role}</p>}
+                {roleLabel && <p className="truncate text-[0.6875rem] text-white/45">{roleLabel}</p>}
               </div>
             )}
           </div>
@@ -260,6 +290,12 @@ export default function AppLayout() {
     scrollAreaRef.current?.scrollTo(0, 0)
   }, [location.pathname])
 
+  // Members and guests (the /member area) share this layout with a
+  // one-item menu; under their name they see "Guest"/"Member" instead of a role.
+  const isMember = user?.accountType === 'member'
+  const navigation = isMember ? MEMBER_NAVIGATION_TREE : NAVIGATION_TREE
+  const roleLabel = isMember ? (user.status === 'Guest' ? 'Guest' : 'Member') : user?.role
+
   const pageMeta = getPageMeta(location.pathname)
   const dateLabel = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -291,12 +327,15 @@ export default function AppLayout() {
       >
         <SidebarContent
           collapsed={collapsed}
+          navigation={navigation}
           hasPermission={hasPermission}
           user={user}
+          roleLabel={roleLabel}
           onLogoutClick={() => setLogoutConfirmOpen(true)}
           showBrandToggle
           brandToggleIcon={<FiChevronLeft />}
           onBrandToggle={() => setCollapsed(true)}
+          onExpandSidebar={() => setCollapsed(false)}
         />
       </aside>
 
@@ -317,8 +356,10 @@ export default function AppLayout() {
         >
           <SidebarContent
             collapsed={false}
+            navigation={navigation}
             hasPermission={hasPermission}
             user={user}
+            roleLabel={roleLabel}
             onLogoutClick={() => setLogoutConfirmOpen(true)}
             showBrandToggle
             brandToggleIcon={<FiX />}
@@ -373,8 +414,8 @@ export default function AppLayout() {
               <div className="text-xs font-semibold leading-tight text-[color:var(--color-ink)]">
                 {user?.fullName || 'Unknown'}
               </div>
-              {user?.role && (
-                <div className="text-[0.6875rem] leading-tight text-[color:var(--color-ink-faint)]">{user.role}</div>
+              {roleLabel && (
+                <div className="text-[0.6875rem] leading-tight text-[color:var(--color-ink-faint)]">{roleLabel}</div>
               )}
             </div>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--color-brand-soft)] text-xs font-display font-semibold text-[color:var(--color-brand-dark)]">

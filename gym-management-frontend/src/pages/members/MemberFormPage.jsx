@@ -522,7 +522,7 @@ export default function MemberFormPage() {
       <PageHeader
         title={isEdit ? 'Edit member' : 'Add member'}
         description={isEdit ? `Update ${existing.fullName}'s profile.` : 'Create a new member profile.'}
-        back={{ to: '/members', label: 'Back to members' }}
+        back={{ to: '/members/all', label: 'Back to members' }}
       />
 
       <Card className="p-6">
@@ -532,7 +532,7 @@ export default function MemberFormPage() {
           planOptions={planOptions}
           noPlansHint="No plans set up yet — add one in Setup → Payment Plans."
           onSubmit={handleSubmit}
-          onCancel={() => navigate(isEdit ? `/members/${memberId}` : '/members')}
+          onCancel={() => navigate(isEdit ? `/members/${memberId}` : '/members/all')}
         />
       </Card>
     </div>

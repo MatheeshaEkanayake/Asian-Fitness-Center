@@ -35,6 +35,10 @@ use Laravel\Sanctum\HasApiTokens;
  * A registration that an admin has granted a role to has a `staffAccount`
  * (users.member_id) and signs in as staff. Staff aren't gym members, so
  * they're left out of member lists (scopeNotStaff).
+ *
+ * Everyone signs up as a Guest (status 'Guest'); staff make them a member
+ * from Members > Guests (GuestController::promote). Guests are listed only
+ * there, can't be paid for, and get no door access.
  */
 #[ObservedBy(MemberObserver::class)]
 class Member extends Authenticatable
@@ -129,6 +133,22 @@ class Member extends Authenticatable
     public function scopeNotStaff($query)
     {
         return $query->whereDoesntHave('staffAccount');
+    }
+
+    /** Registrations not yet made a member. */
+    public function scopeGuests($query)
+    {
+        return $query->where('status', 'Guest');
+    }
+
+    public function scopeNotGuest($query)
+    {
+        return $query->where('status', '!=', 'Guest');
+    }
+
+    public function isGuest(): bool
+    {
+        return $this->status === 'Guest';
     }
 
     public function paymentPlan(): BelongsTo

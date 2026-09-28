@@ -26,6 +26,8 @@ import MemberFormPage from './pages/members/MemberFormPage'
 import MemberDetailPage from './pages/members/MemberDetailPage'
 import MemberAttendencePage from './pages/members/MemberAttendencePage'
 import StaffAttendancePage from './pages/members/StaffAttendancePage'
+import GuestListPage from './pages/members/GuestListPage'
+import GuestDetailPage from './pages/members/GuestDetailPage'
 
 import PaymentsDashboardPage from './pages/payments/PaymentsDashboardPage'
 import MembershipListPage from './pages/payments/membership/MembershipListPage'
@@ -92,9 +94,13 @@ export default function App() {
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/signup" element={<SignupPage />} />
 
-                {/* Member area — signed-in members only (staff are sent to /). */}
+                {/* Member area — signed-in members and guests (staff are sent to /).
+                    Same side-panel layout as staff, without the staff data
+                    providers (member tokens can't call those endpoints). */}
                 <Route element={<RequireAuth account="member" />}>
-                  <Route path="/member" element={<MemberHomePage />} />
+                  <Route element={<AppLayout />}>
+                    <Route path="/member" element={<MemberHomePage />} />
+                  </Route>
                 </Route>
 
                 <Route element={<RequireAuth />}>
@@ -102,14 +108,16 @@ export default function App() {
                     <Route element={<AppLayout />}>
                       <Route path="/" element={<DashboardPage />} />
 
-                      <Route path="/members" element={<MemberListPage />} />
+                      <Route path="/members/all" element={<MemberListPage />} />
                       <Route path="/members/new" element={<MemberFormPage />} />
                       <Route path="/members/:memberId" element={<MemberDetailPage />} />
                       <Route path="/members/:memberId/edit" element={<MemberFormPage />} />
+                      <Route path="/members/guests" element={<GuestListPage />} />
+                      <Route path="/members/guests/:guestId" element={<GuestDetailPage />} />
                       <Route path="/members/attendence" element={<MemberAttendencePage />} />
-                    <Route path="/members/staff-attendance" element={<StaffAttendancePage />} />
+                      <Route path="/members/staff-attendance" element={<StaffAttendancePage />} />
 
-                      <Route path="/payments" element={<PaymentsDashboardPage />} />
+                      <Route path="/payments/summary" element={<PaymentsDashboardPage />} />
                       <Route path="/payments/membership" element={<MembershipListPage />} />
                       <Route path="/payments/membership/new" element={<MembershipFormPage />} />
                       <Route path="/payments/membership/:transactionId" element={<MembershipDetailPage />} />

@@ -51,7 +51,8 @@ class AuthController extends Controller
                 return $this->staffLogin($request, $staff);
             }
 
-            if ($member->status !== 'Active') {
+            // Guests (registered, not yet made a member) can sign in too.
+            if (! in_array($member->status, ['Active', 'Guest'], true)) {
                 $this->fail('This membership is inactive. Please contact the front desk.');
             }
 
@@ -73,15 +74,16 @@ class AuthController extends Controller
     /**
      * POST /api/auth/signup
      *
-     * Public member self-signup. Creates an Active member (same as staff
-     * adding one) and signs them straight in.
+     * Public self-signup. Everyone registers as a Guest and is signed
+     * straight in; staff make them a member later (GuestController::promote),
+     * which resets join_date to that day.
      */
     public function signup(SignupRequest $request): JsonResponse
     {
         $member = Member::create([
             ...$request->validated(),
             'join_date' => now()->toDateString(),
-            'status'    => 'Active',
+            'status'    => 'Guest',
         ]);
 
         return response()->json([

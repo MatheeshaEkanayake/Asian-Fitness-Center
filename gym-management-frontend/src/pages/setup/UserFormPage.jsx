@@ -9,6 +9,7 @@ import Card from '../../components/shared/Card'
 import Button from '../../components/shared/Button'
 import Avatar from '../../components/shared/Avatar'
 import Combobox from '../../components/shared/Combobox'
+import EnrollOnDevice from '../../components/shared/EnrollOnDevice'
 import FormField, { TextInput, Select } from '../../components/shared/FormField'
 
 // Add = grant a role to someone who has already registered on /signup (their
@@ -268,6 +269,24 @@ export default function UserFormPage() {
           </form>
         </Card>
       </div>
+
+      {isEdit && isLinked && (
+        <div>
+          <h2 className="font-display text-base font-semibold text-[color:var(--color-ink)] mb-2">
+            Door device enrollment
+          </h2>
+          <Card className="p-6">
+            <EnrollOnDevice
+              enroll={(input) => userService.enrollOnDevice(Number(userId), input)}
+              disabledReason={
+                /^\d{1,9}$/.test(existing.memberIdNumber || '')
+                  ? null
+                  : 'Save a Member ID number (door PIN) for them first.'
+              }
+            />
+          </Card>
+        </div>
+      )}
 
       {isEdit && (
         <div>

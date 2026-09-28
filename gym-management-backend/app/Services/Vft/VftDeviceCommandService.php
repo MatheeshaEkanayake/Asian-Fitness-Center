@@ -3,133 +3,148 @@
 namespace App\Services\Vft;
 
 use Carbon\CarbonInterface;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use InvalidArgumentException;
 
 /**
- * Builds ZKTeco access-control commands and sends them through VFT's
- * POST /api/devicecmd. Nothing else in the app should build command strings.
+ * The door-device actions the app uses, on top of VftApiClient. Nothing else
+ * in the app should call the device endpoints directly.
  *
- * Commands are TAB-separated `Key=Value` pairs with dates as YYYYMMDD.
- * Every value is cleaned so a name containing a tab/newline can't inject
- * extra fields, and PINs must be 1–9 digits (the Member ID number).
+ * People are VFT "employees" whose EmpId is the Member ID number (1–9
+ * digits). Putting someone on the door takes four steps, in this order,
+ * because the device works through its queued commands in order:
  *
- * Respects VFT_MODE: `off` sends nothing, `log` writes the command to the
+ *   upsertPerson()     cloud: add, or rename if they already exist
+ *   transferToDevice() cloud → device (user + any fingerprints/face)
+ *   setValidity()      device: the dates they may enter between
+ *   grantAccess()      device: door access on
+ *
+ * Respects VFT_MODE: `off` sends nothing, `log` writes each action to the
  * vft log without sending, `live` sends it.
  */
 class VftDeviceCommandService
 {
     private const NAME_MAX_LENGTH = 24;
 
+    public const AREA_CACHE_KEY = 'vft.default_device_area';
+
     public function __construct(private readonly VftApiClient $client) {}
 
     // ---------------------------------------------------------------------
-    // Users on the device
+    // People
     // ---------------------------------------------------------------------
 
     /**
-     * Create the user, or update them if the PIN already exists.
-     * Null dates mean "no limit" (sent as 0).
+     * Add the person to the VFT cloud, or update their name if their EmpId
+     * is already there (adding an existing EmpId fails with "Validation
+     * error", and editing a missing one still reports success).
      */
-    public function addOrUpdateMember(
-        string $pin,
-        string $name,
-        ?CarbonInterface $startDate,
-        ?CarbonInterface $endDate,
-        ?string $devSn = null,
-    ): VftCommandResult {
-        return $this->send('DATA UPDATE user '.$this->fields([
-            'CardNo' => '',
-            'Pin' => $this->pin($pin),
-            'Password' => '',
-            'Group' => (string) config('vft.user_group'),
-            'StartTime' => $this->date($startDate),
-            'EndTime' => $this->date($endDate),
-            'Name' => $this->name($name),
-            'Privilege' => '0',
-            'Disable' => '0',
-        ]), $devSn);
+    public function upsertPerson(string $pin, string $name, ?string $devSn = null): VftCommandResult
+    {
+        $pin = $this->pin($pin);
+        $name = $this->name($name);
+        $devSn = $this->deviceSn($devSn);
+
+        return $this->run($devSn, 'upsert-employee', ['EmpId' => $pin, 'EmpName' => $name], function () use ($pin, $name, $devSn) {
+            $existing = collect((array) $this->client->listEmployees())
+                ->first(fn ($employee) => (string) ($employee['EmpId'] ?? '') === $pin);
+
+            if (! $existing) {
+                return $this->client->createEmployee(['EmpId' => $pin, 'EmpName' => $name, 'AreaID' => $this->areaId($devSn)]);
+            }
+
+            return ($existing['EmpName'] ?? null) === $name
+                ? ['message' => 'Already up to date']
+                : $this->client->updateEmployee($pin, ['EmpName' => $name]);
+        });
     }
 
-    /** Change only the dates a user may enter between. */
-    public function setMemberValidity(
-        string $pin,
-        ?CarbonInterface $startDate,
-        ?CarbonInterface $endDate,
-        ?string $devSn = null,
-    ): VftCommandResult {
-        return $this->send('DATA UPDATE user '.$this->fields([
-            'Pin' => $this->pin($pin),
-            'StartTime' => $this->date($startDate),
-            'EndTime' => $this->date($endDate),
-        ]), $devSn);
+    public function transferToDevice(string $pin, ?string $devSn = null): VftCommandResult
+    {
+        $pin = $this->pin($pin);
+        $devSn = $this->deviceSn($devSn);
+
+        return $this->run($devSn, 'syncsometoone', ['empidlist' => $pin],
+            fn () => $this->client->syncEmployeesToDevice($devSn, [$pin]));
     }
 
-    /**
-     * Remove a user completely: door access, fingerprints and the user.
-     * Used when a member's PIN changes (fingerprints are tied to the PIN).
-     *
-     * @return VftCommandResult[]
-     */
-    public function deleteMember(string $pin, ?string $devSn = null): array
+    /** Remove the person from every device (user + fingerprints/face) and from the cloud. */
+    public function removePerson(string $pin, ?string $devSn = null): VftCommandResult
     {
         $pin = $this->pin($pin);
 
-        return [
-            $this->revokeDoorAccess($pin, $devSn),
-            $this->send("DATA DELETE templatev10 Pin={$pin}", $devSn),
-            $this->send("DATA DELETE user Pin={$pin}", $devSn),
-        ];
+        return $this->run($this->deviceSn($devSn), 'delete-employee', ['EmpId' => $pin], function () use ($pin) {
+            return [
+                'fromdev' => $this->client->deleteEmployeeFromDevices($pin),
+                'cloud' => $this->client->deleteEmployee($pin),
+            ];
+        });
     }
 
     // ---------------------------------------------------------------------
     // Door access
     // ---------------------------------------------------------------------
 
-    public function grantDoorAccess(string $pin, ?int $doorId = null, ?int $timezoneId = null, ?string $devSn = null): VftCommandResult
+    /** The dates they may enter between; null means no limit (sent as 0). */
+    public function setValidity(string $pin, ?CarbonInterface $startDate, ?CarbonInterface $endDate, ?string $devSn = null): VftCommandResult
     {
-        return $this->send('DATA UPDATE userauthorize '.$this->fields([
-            'Pin' => $this->pin($pin),
-            'AuthorizeTimezoneId' => (string) $this->positiveInt($timezoneId ?? config('vft.access_timezone_id'), 'timezone id'),
-            'AuthorizeDoorId' => (string) $this->positiveInt($doorId ?? config('vft.door_id'), 'door id'),
-        ]), $devSn);
+        $pin = $this->pin($pin);
+        $devSn = $this->deviceSn($devSn);
+        $params = ['EmployeeId' => $pin, 'StartDate' => $this->date($startDate), 'EndDate' => $this->date($endDate)];
+
+        return $this->run($devSn, 'validperiod', $params,
+            fn () => $this->client->setValidPeriod($devSn, $pin, $params['StartDate'], $params['EndDate']));
     }
 
-    public function revokeDoorAccess(string $pin, ?string $devSn = null): VftCommandResult
+    public function grantAccess(string $pin, ?string $devSn = null): VftCommandResult
     {
-        return $this->send('DATA DELETE userauthorize Pin='.$this->pin($pin), $devSn);
+        $pin = $this->pin($pin);
+        $devSn = $this->deviceSn($devSn);
+
+        return $this->run($devSn, 'accessgrant', ['EmployeeId' => $pin], fn () => $this->client->grantAccess($devSn, $pin));
     }
 
-    /** Unlock a door for a few seconds, e.g. door 1 for 5s → CONTROL DEVICE 01010105. */
-    public function openDoor(int $doorId = 1, int $seconds = 5, ?string $devSn = null): VftCommandResult
+    /** Door access off; the person and their fingerprints stay on the device. */
+    public function blockAccess(string $pin, ?string $devSn = null): VftCommandResult
     {
-        if ($doorId < 1 || $doorId > 99) {
-            throw new InvalidArgumentException('Door id must be between 1 and 99.');
-        }
-        if ($seconds < 1 || $seconds > 99) {
-            throw new InvalidArgumentException('Open time must be between 1 and 99 seconds.');
-        }
+        $pin = $this->pin($pin);
+        $devSn = $this->deviceSn($devSn);
 
-        return $this->send(sprintf('CONTROL DEVICE 01%02d01%02d', $doorId, $seconds), $devSn);
+        return $this->run($devSn, 'accessblock', ['EmployeeId' => $pin], fn () => $this->client->blockAccess($devSn, $pin));
+    }
+
+    public function openDoor(?string $devSn = null): VftCommandResult
+    {
+        $devSn = $this->deviceSn($devSn);
+
+        return $this->run($devSn, 'dooropen', [], fn () => $this->client->openDoor($devSn));
     }
 
     // ---------------------------------------------------------------------
-    // Queries (response format still unknown — see the vft log)
+    // Enrollment — the device waits for the person to scan
     // ---------------------------------------------------------------------
 
-    public function getUsers(?string $devSn = null): VftCommandResult
+    /** @param int $fingerId 0–9, in the device's own finger numbering */
+    public function enrollFinger(string $pin, int $fingerId, ?string $devSn = null): VftCommandResult
     {
-        return $this->send('DATA QUERY tablename=user,fielddesc=*,filter=*', $devSn);
+        if ($fingerId < 0 || $fingerId > 9) {
+            throw new InvalidArgumentException('Finger must be 0–9.');
+        }
+
+        $pin = $this->pin($pin);
+        $devSn = $this->deviceSn($devSn);
+
+        return $this->run($devSn, 'enrollfinger', ['employeeId' => $pin, 'fingerId' => $fingerId],
+            fn () => $this->client->enrollFinger($devSn, $pin, $fingerId));
     }
 
-    public function getFingerprintTemplates(?string $devSn = null): VftCommandResult
+    public function enrollFace(string $pin, ?string $devSn = null): VftCommandResult
     {
-        return $this->send('DATA QUERY tablename=templatev10,fielddesc=*,filter=*', $devSn);
-    }
+        $pin = $this->pin($pin);
+        $devSn = $this->deviceSn($devSn);
 
-    public function getTransactions(?string $devSn = null): VftCommandResult
-    {
-        return $this->send('DATA QUERY tablename=transaction,fielddesc=*,filter=*', $devSn);
+        return $this->run($devSn, 'enrollface', ['employeeId' => $pin], fn () => $this->client->enrollFace($devSn, $pin));
     }
 
     // ---------------------------------------------------------------------
@@ -143,27 +158,37 @@ class VftDeviceCommandService
         return in_array($mode, ['off', 'log', 'live'], true) ? $mode : 'off';
     }
 
-    private function send(string $content, ?string $devSn): VftCommandResult
+    /** @param array<string, mixed> $params */
+    private function run(string $devSn, string $action, array $params, callable $send): VftCommandResult
     {
-        $devSn = $this->deviceSn($devSn);
         $mode = $this->mode();
 
         if ($mode === 'off') {
-            return new VftCommandResult($mode, $devSn, $content, sent: false);
+            return new VftCommandResult($mode, $devSn, $action, $params, sent: false);
         }
 
         if ($mode === 'log') {
-            Log::channel('vft')->info('[dry run] device command not sent', [
-                'DevSN' => $devSn,
-                'Content' => $content,
-            ]);
+            Log::channel('vft')->info("[dry run] {$action} not sent", ['DevSN' => $devSn] + $params);
 
-            return new VftCommandResult($mode, $devSn, $content, sent: false);
+            return new VftCommandResult($mode, $devSn, $action, $params, sent: false);
         }
 
-        $response = $this->client->sendDeviceCommand($devSn, $content);
+        return new VftCommandResult($mode, $devSn, $action, $params, sent: true, response: $send());
+    }
 
-        return new VftCommandResult($mode, $devSn, $content, sent: true, response: $response);
+    /** The default device's area, from GET /api/device (cached). New people go in it. */
+    private function areaId(string $devSn): int
+    {
+        return Cache::remember(self::AREA_CACHE_KEY.'.'.$devSn, config('vft.area_cache_seconds'), function () use ($devSn) {
+            $device = collect((array) $this->client->listDevices())->firstWhere('DevSN', $devSn);
+            $areaId = $device['Area']['AreaID'] ?? $device['AreaID'] ?? null;
+
+            if (! is_numeric($areaId)) {
+                throw new VftApiException("Device {$devSn} is not registered on this VFT account, or has no area.");
+            }
+
+            return (int) $areaId;
+        });
     }
 
     private function deviceSn(?string $devSn): string
@@ -175,14 +200,6 @@ class VftDeviceCommandService
         }
 
         return $devSn;
-    }
-
-    /** @param array<string, string> $fields */
-    private function fields(array $fields): string
-    {
-        return collect($fields)
-            ->map(fn (string $value, string $key) => $key.'='.$this->clean($value))
-            ->implode("\t");
     }
 
     public function pin(string $pin): string
@@ -212,14 +229,5 @@ class VftDeviceCommandService
     private function date(?CarbonInterface $date): string
     {
         return $date ? $date->format('Ymd') : '0';
-    }
-
-    private function positiveInt(int $value, string $label): int
-    {
-        if ($value < 1) {
-            throw new InvalidArgumentException("Invalid {$label}: {$value}.");
-        }
-
-        return $value;
     }
 }

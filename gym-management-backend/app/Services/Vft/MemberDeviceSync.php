@@ -17,10 +17,14 @@ use Throwable;
  *     Active and access_valid_until ≥ today → on the device with those dates
  *     otherwise → blocked, if they were ever put on the device
  *
- * "Blocked" keeps them (and their fingerprints) on the device but removes
+ * Granting = add/rename them in the VFT cloud, copy them to the device the
+ * first time, then set their dates and turn door access on (see
+ * VftDeviceCommandService for why in that order).
+ *
+ * "Blocked" keeps them (and their fingerprints) on the device but blocks
  * door access and ends their dates yesterday, so paying again restores
- * access without re-scanning. If the PIN changed, the old device user is
- * deleted first.
+ * access without re-scanning. If the PIN changed, the old VFT employee is
+ * removed from the device and the cloud first.
  *
  * Result is saved on the member (device_sync_*) for their profile:
  *   synced | dry_run | failed | no_pin | no_access
@@ -40,7 +44,7 @@ class MemberDeviceSync
         try {
             // PIN changed or removed: the old device user must go.
             if ($previousPin && $previousPin !== $pin) {
-                $this->commands->deleteMember($previousPin);
+                $this->commands->removePerson($previousPin);
                 $previousPin = null;
             }
 
@@ -52,8 +56,12 @@ class MemberDeviceSync
 
             if ($state === 'grant') {
                 [$from, $until] = $this->grantDates($member);
-                $this->commands->addOrUpdateMember($pin, $member->full_name, $from, $until);
-                $this->commands->grantDoorAccess($pin);
+                $this->commands->upsertPerson($pin, $member->full_name);
+                if ($previousPin !== $pin) {
+                    $this->commands->transferToDevice($pin);
+                }
+                $this->commands->setValidity($pin, $from, $until);
+                $this->commands->grantAccess($pin);
             } elseif ($previousPin) {
                 $this->block($member, $pin, $today);
             } else {
@@ -104,8 +112,8 @@ class MemberDeviceSync
         $yesterday = $today->subDay();
         $from = $member->access_valid_from ? CarbonImmutable::parse($member->access_valid_from) : $yesterday;
 
-        $this->commands->setMemberValidity($pin, $from->min($yesterday), $yesterday);
-        $this->commands->revokeDoorAccess($pin);
+        $this->commands->setValidity($pin, $from->min($yesterday), $yesterday);
+        $this->commands->blockAccess($pin);
     }
 
     /**

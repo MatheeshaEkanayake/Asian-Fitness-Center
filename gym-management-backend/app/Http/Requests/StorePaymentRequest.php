@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 /**
  * Validation for POST /api/payments (record a new payment).
@@ -32,7 +33,8 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             // Required (mirrors frontend validate() in TransactionFormPage.jsx)
-            'member_id' => ['required', 'exists:members,id'],
+            // Guests must be made a member before they can be paid for.
+            'member_id' => ['required', Rule::exists('members', 'id')->where(fn ($q) => $q->where('status', '!=', 'Guest'))],
             'amount'    => ['required', 'numeric', 'min:0.01'],
             'method'    => ['required', 'in:Cash,Card,Bank Transfer,Online'],
 
@@ -54,7 +56,7 @@ class StorePaymentRequest extends FormRequest
     {
         return [
             'member_id.required' => 'Select a member.',
-            'member_id.exists'   => 'The selected member does not exist.',
+            'member_id.exists'   => 'Select a member (guests must be made a member first).',
             'amount.required'    => 'Enter an amount greater than 0.',
             'amount.min'         => 'Enter an amount greater than 0.',
             'method.required'    => 'Select a payment method.',

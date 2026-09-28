@@ -4,7 +4,9 @@ use App\Http\Controllers\Api\AttendanceController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\BackupController;
 use App\Http\Controllers\Api\BranchController;
+use App\Http\Controllers\Api\DeviceEnrollmentController;
 use App\Http\Controllers\Api\EmailSettingsController;
+use App\Http\Controllers\Api\GuestController;
 use App\Http\Controllers\Api\GymSettingsController;
 use App\Http\Controllers\Api\LoginActivityController;
 use App\Http\Controllers\Api\MemberController;
@@ -15,6 +17,7 @@ use App\Http\Controllers\Api\RoleController;
 use App\Http\Controllers\Api\StaffAttendanceController;
 use App\Http\Controllers\Api\SystemDiagnosticsController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VftWebhookController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -53,6 +56,9 @@ use Illuminate\Support\Facades\Route;
 // login more loosely, since a whole gym can share one Wi-Fi IP.
 Route::post('/auth/login', [AuthController::class, 'login'])->middleware('throttle:30,1');
 Route::post('/auth/signup', [AuthController::class, 'signup'])->middleware('throttle:10,1');
+// Door punches pushed by the VFT cloud. No login — the secret in the URL
+// is checked in VftWebhookController (404 if wrong or unset).
+Route::post('/vft/webhook/{secret}', VftWebhookController::class)->middleware('throttle:120,1');
 Route::get('/public/payment-plans', [PaymentPlanController::class, 'publicIndex'])->middleware('throttle:60,1');
 
 // Gym branding (name, tagline, contact details, logo) — public so the
@@ -76,6 +82,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('users/candidates', [UserController::class, 'candidates']);
         Route::apiResource('users', UserController::class);
         Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword']);
+        Route::post('users/{user}/enroll', [DeviceEnrollmentController::class, 'staff']);
 
         Route::apiResource('roles', RoleController::class);
 
@@ -138,6 +145,9 @@ Route::middleware('auth:sanctum')->group(function () {
             // PATCH  /api/members/{id}/status   → setMemberStatus(memberId, status)
             Route::patch('/status', [MemberController::class, 'updateStatus'])->middleware('permission:members.edit');
 
+            // POST   /api/members/{id}/enroll   → fingerprint/face enrollment on the door device
+            Route::post('/enroll', [DeviceEnrollmentController::class, 'member'])->middleware('permission:members.edit');
+
             // DELETE /api/members/{id}          → deactivateMember(memberId)
             //   (soft-delete: sets status to Inactive, preserves payment history)
             Route::delete('/', [MemberController::class, 'destroy'])->middleware('permission:members.edit');
@@ -146,6 +156,15 @@ Route::middleware('auth:sanctum')->group(function () {
             //   Also used by: MemberDetailPage.jsx (Payment history tab)
             Route::get('/payments', [MemberController::class, 'payments'])->middleware('permission:members.view');
         });
+    });
+
+    // Members > Guests — everyone who signs up, until staff make them a
+    // member. See GuestController.
+    Route::prefix('guests')->group(function () {
+        Route::get('/', [GuestController::class, 'index'])->middleware('permission:members.view');
+        Route::get('/{member}', [GuestController::class, 'show'])->middleware('permission:members.view');
+        Route::post('/{member}/promote', [GuestController::class, 'promote'])->middleware('permission:members.edit');
+        Route::delete('/{member}', [GuestController::class, 'destroy'])->middleware('permission:members.edit');
     });
 
     // Replaces: src/services/paymentService.js → getPaymentSummary()

@@ -54,8 +54,9 @@ class MemberController extends Controller
     {
         // Eager-load so membershipType/paymentStatus/todayAttendanceStatus
         // (see Member::$appends) don't trigger a query per row.
-        // Staff (registrations granted a role) aren't gym members.
-        $query = Member::query()->notStaff()->with(['latestPayment', 'todayAttendance']);
+        // Staff (registrations granted a role) aren't gym members, and
+        // guests are listed separately (GuestController).
+        $query = Member::query()->notStaff()->notGuest()->with(['latestPayment', 'todayAttendance']);
 
         // Search by name, email, or phone (mirrors MemberListPage.jsx search logic)
         if ($search = $request->input('search')) {

@@ -129,20 +129,77 @@ class VftApiClientTest extends TestCase
         app(VftApiClient::class)->listDevices();
     }
 
-    public function test_server_error_throws_with_status_and_body(): void
+    public function test_server_error_throws_with_status_body_and_message(): void
     {
         Http::fake([
             'vft.test/api/user/' => Http::response(['token' => $this->token('a')]),
-            'vft.test/api/devicecmd' => Http::response('boom', 500),
+            'vft.test/api/template/add' => Http::response(['message' => 'Validation error'], 500),
         ]);
 
         try {
-            app(VftApiClient::class)->sendDeviceCommand('TESTSN001', 'CONTROL DEVICE 01010105');
+            app(VftApiClient::class)->createEmployee(['EmpId' => '168', 'EmpName' => 'Saman Kumara', 'AreaID' => 1]);
             $this->fail('Expected VftApiException');
         } catch (VftApiException $e) {
             $this->assertSame(500, $e->status);
-            $this->assertSame('boom', $e->responseBody);
+            $this->assertStringContainsString('Validation error', $e->getMessage());
+            $this->assertSame('{"message":"Validation error"}', $e->responseBody);
         }
+    }
+
+    public function test_failure_reported_with_http_200_still_throws(): void
+    {
+        Http::fake([
+            'vft.test/api/user/' => Http::response(['token' => $this->token('a')]),
+            'vft.test/api/template/*' => Http::response(['message' => 'Cannot delete Employee with id=166. The Employee was not found!']),
+        ]);
+
+        $this->expectException(VftApiException::class);
+        $this->expectExceptionMessage('The Employee was not found!');
+
+        app(VftApiClient::class)->deleteEmployee('166');
+    }
+
+    public function test_success_message_with_http_200_is_returned(): void
+    {
+        Http::fake([
+            'vft.test/api/user/' => Http::response(['token' => $this->token('a')]),
+            'vft.test/api/template/edit/*' => Http::response(['message' => 'Employee was updated successfully']),
+        ]);
+
+        $response = app(VftApiClient::class)->updateEmployee('166', ['EmpName' => 'Amal_Perera']);
+
+        $this->assertSame('Employee was updated successfully', $response['message']);
+        Http::assertSent(fn (Request $r) => $r->method() === 'PUT'
+            && $r->url() === 'https://vft.test/api/template/edit/166'
+            && $r['EmpName'] === 'Amal_Perera');
+    }
+
+    public function test_device_actions_send_their_parameters_in_the_query_string(): void
+    {
+        Http::fake([
+            'vft.test/api/user/' => Http::response(['token' => $this->token('a')]),
+            'vft.test/api/*' => Http::response(['message' => 'Command added']),
+        ]);
+
+        $client = app(VftApiClient::class);
+        $client->setValidPeriod('TESTSN001', '168', '20251214', '20260107');
+        $client->grantAccess('TESTSN001', '168');
+        $client->blockAccess('TESTSN001', '166');
+        $client->syncEmployeesToDevice('TESTSN001', ['166', '167']);
+        $client->enrollFinger('TESTSN001', '168', 1);
+        $client->enrollFace('TESTSN001', '1');
+        $client->openDoor('TESTSN001');
+
+        $urls = Http::recorded()->map(fn ($pair) => $pair[0]->method().' '.urldecode($pair[0]->url()))->slice(1)->values()->all();
+        $this->assertSame([
+            'POST https://vft.test/api/devicecmd/validperiod?DevSN=TESTSN001&EmployeeId=168&StartDate=20251214&EndDate=20260107',
+            'POST https://vft.test/api/devicecmd/accessgrant?DevSN=TESTSN001&EmployeeId=168',
+            'POST https://vft.test/api/devicecmd/accessblock?DevSN=TESTSN001&EmployeeId=166',
+            'POST https://vft.test/api/template/syncsometoone?DevSN=TESTSN001&empidlist=166,167',
+            'POST https://vft.test/api/devicecmd/enrollfinger?DevSN=TESTSN001&employeeId=168&fingerId=1',
+            'POST https://vft.test/api/devicecmd/enrollface?DevSN=TESTSN001&employeeId=1',
+            'POST https://vft.test/api/devicecmd/dooropen?DevSN=TESTSN001',
+        ], $urls);
     }
 
     public function test_connection_failures_are_retried_then_throw(): void

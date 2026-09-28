@@ -8,6 +8,8 @@ import StatusBadge from '../../components/shared/StatusBadge'
 import Avatar from '../../components/shared/Avatar'
 import ConfirmDialog from '../../components/shared/ConfirmDialog'
 import EmptyState from '../../components/shared/EmptyState'
+import EnrollOnDevice from '../../components/shared/EnrollOnDevice'
+import * as memberService from '../../services/memberService'
 import { Table, THead, Th, TBody, Tr, Td } from '../../components/shared/Table'
 import { formatCurrency, formatDate, formatDateTime, formatPlan } from '../../utils/format'
 import { kgToLb, cmToFtIn, round } from '../../utils/units'
@@ -30,7 +32,7 @@ export default function MemberDetailPage() {
     return (
       <Card className="p-8 text-center text-sm text-[color:var(--color-ink-soft)]">
         Member not found.{' '}
-        <Link to="/members" className="text-[color:var(--color-brand)] underline">
+        <Link to="/members/all" className="text-[color:var(--color-brand)] underline">
           Back to members
         </Link>
       </Card>
@@ -52,7 +54,7 @@ export default function MemberDetailPage() {
   return (
     <div>
       <button
-        onClick={() => navigate('/members')}
+        onClick={() => navigate('/members/all')}
         className="text-sm text-[color:var(--color-ink-soft)] hover:text-[color:var(--color-ink)] mb-4"
       >
         ← Back to members
@@ -249,6 +251,16 @@ function DoorAccessSection({ member }) {
           {note}
         </div>
       ))}
+      {hasPin && (
+        <EnrollOnDevice
+          enroll={(input) => memberService.enrollOnDevice(member.id, input)}
+          disabledReason={
+            member.devicePinSynced === member.memberIdNumber || member.deviceSyncStatus === 'dry_run'
+              ? null
+              : 'Enrollment opens once they are on the door device (after a paid membership is recorded).'
+          }
+        />
+      )}
     </Section>
   )
 }
