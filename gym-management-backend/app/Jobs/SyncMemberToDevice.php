@@ -36,7 +36,8 @@ class SyncMemberToDevice implements ShouldQueue, ShouldBeUniqueUntilProcessing
 
     public function handle(MemberDeviceSync $sync): void
     {
-        $member = Member::find($this->memberId);
+        // Archived members too, so the push can take them off the device.
+        $member = Member::withTrashed()->find($this->memberId);
 
         if ($member) {
             $sync->sync($member);

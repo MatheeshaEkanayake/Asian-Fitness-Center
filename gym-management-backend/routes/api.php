@@ -152,9 +152,13 @@ Route::middleware('auth:sanctum')->group(function () {
             // GET    /api/members/{id}/enrollments → which face/fingers are registered on the device
             Route::get('/enrollments', [DeviceEnrollmentController::class, 'memberStatus'])->middleware('permission:members.view');
 
-            // DELETE /api/members/{id}          → deactivateMember(memberId)
-            //   (soft-delete: sets status to Inactive, preserves payment history)
-            Route::delete('/', [MemberController::class, 'destroy'])->middleware('permission:members.edit');
+            // PATCH  /api/members/{id}/gate-access → setGateAccess(memberId, enabled)
+            //   (status Active ↔ Inactive, which the door device follows)
+            Route::patch('/gate-access', [MemberController::class, 'updateGateAccess'])->middleware('permission:members.gate_access');
+
+            // DELETE /api/members/{id}          → archiveMember(memberId)
+            //   (soft delete, preserves payment history; purged after 6 months)
+            Route::delete('/', [MemberController::class, 'destroy'])->middleware('permission:members.delete');
 
             // GET    /api/members/{id}/payments  → listTransactionsForMember(memberId)
             //   Also used by: MemberDetailPage.jsx (Payment history tab)
@@ -194,6 +198,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
             // PUT    /api/payments/{id}/mark-paid   → markTransactionPaid(transactionId)
             Route::put('/mark-paid', [PaymentController::class, 'markPaid'])->middleware('permission:payments.edit');
+
+            // DELETE /api/payments/{id}             → deleteTransaction(transactionId)
+            //   (permanent; the member's access dates are left as they are)
+            Route::delete('/', [PaymentController::class, 'destroy'])->middleware('permission:payments.delete');
         });
     });
 

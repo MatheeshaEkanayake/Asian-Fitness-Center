@@ -43,6 +43,11 @@ class Payment extends Model
 {
     protected $fillable = [
         'member_id',
+        // Copy of who paid, filled when the member is purged
+        // (members:purge-archived) so the payment still shows them.
+        'member_name',
+        'member_id_number',
+        'member_phone',
         'payment_plan_id',
         'amount',
         'method',
@@ -68,11 +73,13 @@ class Payment extends Model
     // -----------------------------------------------------------------------
 
     /**
-     * The member who made this payment.
+     * The member who made this payment, including archived members so
+     * payment details still show them. Null once the member is purged —
+     * see member_name / member_id_number / member_phone.
      */
     public function member(): BelongsTo
     {
-        return $this->belongsTo(Member::class);
+        return $this->belongsTo(Member::class)->withTrashed();
     }
 
     /**

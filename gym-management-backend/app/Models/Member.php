@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -39,11 +40,15 @@ use Laravel\Sanctum\HasApiTokens;
  * Everyone signs up as a Guest (status 'Guest'); staff make them a member
  * from Members > Guests (GuestController::promote). Guests are listed only
  * there, can't be paid for, and get no door access.
+ *
+ * Deleting a member from the list archives them (soft delete) so payments
+ * can still show who paid. members:purge-archived removes them for good
+ * once they've been archived or not Active for 6 months (inactive_since).
  */
 #[ObservedBy(MemberObserver::class)]
 class Member extends Authenticatable
 {
-    use HasApiTokens;
+    use HasApiTokens, SoftDeletes;
 
     protected $fillable = [
         'branch_id',
@@ -66,6 +71,7 @@ class Member extends Authenticatable
         'password',
         'join_date',
         'status',
+        'inactive_since',
         'notes',
         // Door access (VFT device) — see AccessValidityService / MemberDeviceSync.
         'access_valid_from',
@@ -90,7 +96,25 @@ class Member extends Authenticatable
         'access_valid_from'  => 'date:Y-m-d',
         'access_valid_until' => 'date:Y-m-d',
         'device_synced_at'   => 'datetime',
+        'inactive_since'     => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        // Start the purge clock when a member stops being Active, and stop it
+        // when they're Active again. Guests aren't members yet, so no clock.
+        static::saving(function (Member $member) {
+            if (! $member->isDirty('status')) {
+                return;
+            }
+            $counts = ! in_array($member->status, ['Active', 'Guest'], true);
+            if ($counts && ! $member->inactive_since) {
+                $member->inactive_since = now();
+            } elseif (! $counts) {
+                $member->inactive_since = null;
+            }
+        });
+    }
 
     // membershipType/paymentStatus/todayAttendanceStatus are computed from
     // the latestPayment/todayAttendance relations below (there is no stored

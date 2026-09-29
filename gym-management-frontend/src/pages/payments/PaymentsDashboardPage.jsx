@@ -8,6 +8,7 @@ import StatusBadge from '../../components/shared/StatusBadge'
 import EmptyState from '../../components/shared/EmptyState'
 import { Table, THead, Th, TBody, Tr, Td } from '../../components/shared/Table'
 import { formatCurrency, formatDate } from '../../utils/format'
+import { paymentMember } from '../../utils/paymentMember'
 
 export default function PaymentsDashboardPage() {
   const { summary, transactions, status } = usePayments()
@@ -70,7 +71,7 @@ export default function PaymentsDashboardPage() {
                 </THead>
                 <TBody>
                   {recent.map((t) => {
-                    const member = getMemberById(t.memberId)
+                    const member = paymentMember(t, getMemberById)
                     return (
                       <Tr key={t.id} onClick={() => navigate(`/payments/membership/${t.id}`)}>
                         <Td>{member ? member.fullName : 'Unknown member'}</Td>

@@ -8,6 +8,7 @@
 //   listTransactionsForMember(memberId)  → GET  /api/members/{id}/payments
 //   recordPayment(input)                 → POST /api/payments
 //   markTransactionPaid(transactionId)   → PUT  /api/payments/{id}/mark-paid
+//   deleteTransaction(transactionId)     → DELETE /api/payments/{id}
 //   getPaymentSummary()                  → GET  /api/payments/summary
 //
 // NOTE: this file previously operated on the in-memory src/services/db.js mock
@@ -39,6 +40,11 @@ export function recordPayment(input) {
 
 export function markTransactionPaid(transactionId) {
   return apiClient.put(`/payments/${transactionId}/mark-paid`)
+}
+
+// Permanent. The member's access dates are left unchanged.
+export function deleteTransaction(transactionId) {
+  return apiClient.delete(`/payments/${transactionId}`)
 }
 
 export function getPaymentSummary() {

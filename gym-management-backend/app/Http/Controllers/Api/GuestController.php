@@ -100,7 +100,7 @@ class GuestController extends Controller
 
         DB::transaction(function () use ($member) {
             $member->tokens()->delete();
-            $member->delete();
+            $member->forceDelete();
         });
 
         return response()->json(['message' => 'Guest deleted.']);

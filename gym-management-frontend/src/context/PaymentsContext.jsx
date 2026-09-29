@@ -53,6 +53,16 @@ export function PaymentsProvider({ children }) {
     [refreshSummary, showToast]
   )
 
+  const deleteTransaction = useCallback(
+    async (transaction) => {
+      await paymentService.deleteTransaction(transaction.id)
+      setTransactions((current) => current.filter((t) => String(t.id) !== String(transaction.id)))
+      await refreshSummary()
+      showToast(`Payment ${transaction.invoiceNumber} deleted.`)
+    },
+    [refreshSummary, showToast]
+  )
+
   const markTransactionPaid = useCallback(
     async (transactionId) => {
       const updated = await paymentService.markTransactionPaid(transactionId)
@@ -85,6 +95,7 @@ export function PaymentsProvider({ children }) {
         reload,
         recordPayment,
         markTransactionPaid,
+        deleteTransaction,
         getTransactionById,
         getTransactionsForMember,
       }}

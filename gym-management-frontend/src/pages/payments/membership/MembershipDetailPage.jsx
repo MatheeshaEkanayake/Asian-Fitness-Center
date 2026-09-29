@@ -7,6 +7,7 @@ import Button from '../../../components/shared/Button'
 import StatusBadge from '../../../components/shared/StatusBadge'
 import ReceiptView from '../../../components/payments/ReceiptView'
 import { formatCurrency, formatDate, formatPlan } from '../../../utils/format'
+import { paymentMember } from '../../../utils/paymentMember'
 
 export default function MembershipDetailPage() {
   const { transactionId } = useParams()
@@ -30,7 +31,7 @@ export default function MembershipDetailPage() {
     )
   }
 
-  const member = getMemberById(transaction.memberId)
+  const member = paymentMember(transaction, getMemberById)
   const canMarkPaid = transaction.status === 'Pending'
 
   const handleMarkPaid = async () => {
@@ -61,10 +62,12 @@ export default function MembershipDetailPage() {
           </div>
           <p className="mt-1 text-sm text-[color:var(--color-ink-soft)]">
             {transaction.invoiceNumber} ·{' '}
-            {member ? (
+            {member && !member.removed ? (
               <Link to={`/members/${member.id}`} className="text-[color:var(--color-brand)] hover:underline">
                 {member.fullName}
               </Link>
+            ) : member ? (
+              `${member.fullName} (deleted)`
             ) : (
               'Unknown member'
             )}
@@ -92,6 +95,30 @@ export default function MembershipDetailPage() {
           <Field label="Notes" value={transaction.notes || '—'} full />
         </dl>
       </Card>
+
+      {member?.removed && (
+        <Card className="p-6 mt-4">
+          <h2 className="text-sm font-semibold text-[color:var(--color-ink)] mb-1">Member</h2>
+          <p className="text-xs text-[color:var(--color-ink-faint)] mb-4">
+            {member.removed === 'archived'
+              ? 'This member was deleted and is no longer in the member list.'
+              : 'This member was permanently removed; these details were saved with the payment.'}
+          </p>
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-5 text-sm">
+            <Field label="Name" value={member.fullName} />
+            <Field label="Member ID number" value={member.memberIdNumber || '—'} />
+            <Field label="Phone" value={member.phone || '—'} />
+            {member.removed === 'archived' && (
+              <>
+                <Field label="Email" value={member.email || '—'} />
+                <Field label="NIC" value={member.nic || '—'} />
+                <Field label="Joined" value={member.joinDate ? formatDate(member.joinDate) : '—'} />
+                <Field label="Deleted on" value={formatDate(member.deletedAt)} />
+              </>
+            )}
+          </dl>
+        </Card>
+      )}
 
       <ReceiptView open={receiptOpen} onClose={() => setReceiptOpen(false)} transaction={transaction} member={member} />
     </div>

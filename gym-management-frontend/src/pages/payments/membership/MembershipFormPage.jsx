@@ -8,6 +8,9 @@ import Card from '../../../components/shared/Card'
 import Button from '../../../components/shared/Button'
 import FormField, { TextInput, TextArea, Select } from '../../../components/shared/FormField'
 import MemberSelect from '../../../components/shared/MemberSelect'
+import ConfirmDialog from '../../../components/shared/ConfirmDialog'
+import ReceiptView from '../../../components/payments/ReceiptView'
+import { paymentMember } from '../../../utils/paymentMember'
 import { todayISO, formatPlan } from '../../../utils/format'
 
 function validate(form) {
@@ -47,6 +50,10 @@ export default function MembershipFormPage() {
   }))
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
+  // After saving: ask whether to print, then (on yes) show the receipt.
+  const [saved, setSaved] = useState(null)
+  const [receiptOpen, setReceiptOpen] = useState(false)
+  const backToList = () => navigate('/payments/membership')
 
   const update = (field) => (e) => {
     const value = e?.target ? e.target.value : e
@@ -81,7 +88,7 @@ export default function MembershipFormPage() {
         amount: Number(form.amount),
         dueDate: form.status === 'Pending' ? form.dueDate || form.date : form.date,
       })
-      navigate(`/payments/membership/${transaction.id}`)
+      setSaved(transaction)
     } finally {
       setSaving(false)
     }
@@ -181,6 +188,24 @@ export default function MembershipFormPage() {
           </div>
         </form>
       </Card>
+
+      <ConfirmDialog
+        open={Boolean(saved) && !receiptOpen}
+        onClose={backToList}
+        onConfirm={() => setReceiptOpen(true)}
+        title="Payment recorded"
+        description={`Print a receipt for ${saved?.invoiceNumber}?`}
+        confirmLabel="Yes, print"
+        cancelLabel="No"
+        tone="primary"
+      />
+
+      <ReceiptView
+        open={receiptOpen}
+        onClose={backToList}
+        transaction={saved}
+        member={saved ? paymentMember(saved, getMemberById) : null}
+      />
     </div>
   )
 }

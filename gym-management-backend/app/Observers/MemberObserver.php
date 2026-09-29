@@ -7,7 +7,9 @@ use App\Models\Member;
 
 /**
  * Queues a door-device push when something the device cares about changes:
- * PIN (Member ID number), name, status or access dates.
+ * PIN (Member ID number), name, status or access dates, or the member is
+ * archived (removed from the device). Purges remove from the device
+ * themselves (MemberPurger), so a permanent delete queues nothing.
  */
 class MemberObserver
 {
@@ -27,6 +29,13 @@ class MemberObserver
     public function updated(Member $member): void
     {
         if ($member->wasChanged(self::DEVICE_FIELDS)) {
+            $this->queuePush($member);
+        }
+    }
+
+    public function deleted(Member $member): void
+    {
+        if (! $member->isForceDeleting()) {
             $this->queuePush($member);
         }
     }

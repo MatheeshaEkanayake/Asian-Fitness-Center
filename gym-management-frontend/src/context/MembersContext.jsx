@@ -53,12 +53,34 @@ export function MembersProvider({ children }) {
     [showToast]
   )
 
+  const replaceMember = (updated) =>
+    setMembers((current) => current.map((m) => (String(m.id) === String(updated.id) ? updated : m)))
+
   const deactivateMember = useCallback(
     async (memberId) => {
-      const updated = await memberService.deactivateMember(memberId)
-      setMembers((current) => current.map((m) => (String(m.id) === String(memberId) ? updated : m)))
+      const updated = await memberService.setMemberStatus(memberId, 'Inactive')
+      replaceMember(updated)
       showToast(`${updated.fullName} deactivated.`)
       return updated
+    },
+    [showToast]
+  )
+
+  const setGateAccess = useCallback(
+    async (memberId, enabled) => {
+      const updated = await memberService.setGateAccess(memberId, enabled)
+      replaceMember(updated)
+      showToast(`Gate access ${enabled ? 'enabled' : 'disabled'} for ${updated.fullName}.`)
+      return updated
+    },
+    [showToast]
+  )
+
+  const archiveMember = useCallback(
+    async (member) => {
+      await memberService.archiveMember(member.id)
+      setMembers((current) => current.filter((m) => String(m.id) !== String(member.id)))
+      showToast(`${member.fullName} deleted.`)
     },
     [showToast]
   )
@@ -70,7 +92,17 @@ export function MembersProvider({ children }) {
 
   return (
     <MembersContext.Provider
-      value={{ members, status, reload, addMember, editMember, deactivateMember, getMemberById }}
+      value={{
+        members,
+        status,
+        reload,
+        addMember,
+        editMember,
+        deactivateMember,
+        setGateAccess,
+        archiveMember,
+        getMemberById,
+      }}
     >
       {children}
     </MembersContext.Provider>

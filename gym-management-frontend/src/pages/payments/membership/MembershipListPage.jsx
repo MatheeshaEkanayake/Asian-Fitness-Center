@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { usePayments } from '../../../context/PaymentsContext'
 import { useMembers } from '../../../context/MembersContext'
+import { useAuth } from '../../../context/AuthContext'
+import { useToast } from '../../../context/ToastContext'
 import PageHeader from '../../../components/shared/PageHeader'
 import Card from '../../../components/shared/Card'
 import Button from '../../../components/shared/Button'
@@ -10,14 +12,22 @@ import { Select } from '../../../components/shared/FormField'
 import StatusBadge from '../../../components/shared/StatusBadge'
 import Pagination from '../../../components/shared/Pagination'
 import EmptyState from '../../../components/shared/EmptyState'
+import ConfirmDialog from '../../../components/shared/ConfirmDialog'
 import { Table, THead, Th, TBody, Tr, Td } from '../../../components/shared/Table'
 import { formatCurrency, formatDate } from '../../../utils/format'
+import { paymentMember } from '../../../utils/paymentMember'
 
 const PAGE_SIZE = 6
 
 export default function MembershipListPage() {
-  const { transactions, status } = usePayments()
+  const { transactions, status, deleteTransaction } = usePayments()
   const { getMemberById } = useMembers()
+  const { hasPermission } = useAuth()
+  const { showToast } = useToast()
+  const canDelete = hasPermission('payments.delete')
+
+  const [deleting, setDeleting] = useState(null)
+  const [deleteBusy, setDeleteBusy] = useState(false)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -41,7 +51,7 @@ export default function MembershipListPage() {
     if (query.trim()) {
       const q = query.trim().toLowerCase()
       list = list.filter((t) => {
-        const member = getMemberById(t.memberId)
+        const member = paymentMember(t, getMemberById)
         return (
           t.invoiceNumber.toLowerCase().includes(q) ||
           (member && member.fullName.toLowerCase().includes(q))
@@ -58,6 +68,18 @@ export default function MembershipListPage() {
     const next = new URLSearchParams(searchParams)
     next.delete('memberId')
     setSearchParams(next)
+  }
+
+  const handleDelete = async () => {
+    setDeleteBusy(true)
+    try {
+      await deleteTransaction(deleting)
+      setDeleting(null)
+    } catch (err) {
+      showToast(err.message || 'Could not delete the payment.', { tone: 'error' })
+    } finally {
+      setDeleteBusy(false)
+    }
   }
 
   const withPageReset = (fn) => (value) => {
@@ -135,14 +157,18 @@ export default function MembershipListPage() {
                 <Th>Method</Th>
                 <Th>Type</Th>
                 <Th>Status</Th>
+                {canDelete && <Th className="text-right">Actions</Th>}
               </THead>
               <TBody>
                 {paged.map((t) => {
-                  const member = getMemberById(t.memberId)
+                  const member = paymentMember(t, getMemberById)
                   return (
                     <Tr key={t.id} onClick={() => navigate(`/payments/membership/${t.id}`)}>
                       <Td className="tabular text-[color:var(--color-ink-soft)]">{t.invoiceNumber}</Td>
-                      <Td>{member ? member.fullName : 'Unknown member'}</Td>
+                      <Td>
+                        {member ? member.fullName : 'Unknown member'}
+                        {member?.removed && <RemovedTag />}
+                      </Td>
                       <Td className="tabular text-[color:var(--color-ink-soft)]">{formatDate(t.date)}</Td>
                       <Td className="tabular">{formatCurrency(t.amount)}</Td>
                       <Td className="text-[color:var(--color-ink-soft)]">{t.method}</Td>
@@ -150,6 +176,22 @@ export default function MembershipListPage() {
                       <Td>
                         <StatusBadge status={t.status} />
                       </Td>
+                      {canDelete && (
+                        <Td>
+                          <div className="flex justify-end">
+                            <Button
+                              variant="danger"
+                              onClick={(e) => {
+                                // Inside a clickable row — don't open the payment.
+                                e.stopPropagation()
+                                setDeleting(t)
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </Td>
+                      )}
                     </Tr>
                   )
                 })}
@@ -159,6 +201,20 @@ export default function MembershipListPage() {
           </>
         )}
       </Card>
+
+      <ConfirmDialog
+        open={Boolean(deleting)}
+        onClose={() => setDeleting(null)}
+        onConfirm={handleDelete}
+        loading={deleteBusy}
+        title="Delete payment"
+        description={`Are you sure you want to permanently delete payment ${deleting?.invoiceNumber} (${deleting ? formatCurrency(deleting.amount) : ''})? This can't be undone. The member's gate access dates won't change.`}
+        confirmLabel="Yes, delete"
+      />
     </div>
   )
+}
+
+function RemovedTag() {
+  return <span className="ml-2 text-xs text-[color:var(--color-ink-faint)]">(deleted)</span>
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\UpdateMemberRequest;
 use App\Models\Member;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -24,7 +25,8 @@ use Illuminate\Support\Facades\Hash;
  *   │ createMember(input)         │ POST   /api/members                      │
  *   │ updateMember(id, updates)   │ PUT    /api/members/{id}                 │
  *   │ setMemberStatus(id, status) │ PATCH  /api/members/{id}/status          │
- *   │ deactivateMember(memberId)  │ DELETE /api/members/{id}                 │
+ *   │ setGateAccess(id, enabled)  │ PATCH  /api/members/{id}/gate-access     │
+ *   │ archiveMember(memberId)     │ DELETE /api/members/{id}                 │
  *   └─────────────────────────────┴──────────────────────────────────────────┘
  *
  *   Frontend context: src/context/MembersContext.jsx
@@ -154,21 +156,41 @@ class MemberController extends Controller
     }
 
     /**
+     * PATCH /api/members/{id}/gate-access
+     *
+     * Turn door access on or off from the member list. Door access follows
+     * status (see MemberDeviceSync), so this sets Active or Inactive and the
+     * MemberObserver pushes the change to the device. Its own permission
+     * (members.gate_access) so it can be granted without full member edit.
+     */
+    public function updateGateAccess(Request $request, Member $member): JsonResponse
+    {
+        $data = $request->validate(['enabled' => 'required|boolean']);
+
+        $member->update(['status' => $data['enabled'] ? 'Active' : 'Inactive']);
+
+        return response()->json($member->fresh());
+    }
+
+    /**
      * DELETE /api/members/{id}
      *
-     * Soft-deactivate a member by setting status to 'Inactive'.
-     * Replaces: memberService.js → deactivateMember(memberId)
-     *
-     * Members are NOT hard-deleted so their payment history stays intact.
-     * This matches the comment in memberService.js:
-     *   "Members are soft-deleted (status → Inactive) so linked payment
-     *    history stays intact. See flow spec §3.3 / §5."
+     * Archive a member: signed out, set Inactive and soft-deleted, which
+     * drops them from member lists and the door device (MemberObserver).
+     * Payments keep pointing at them, so payment details still show who
+     * paid. members:purge-archived removes them for good after 6 months.
      */
     public function destroy(Member $member): JsonResponse
     {
-        $member->update(['status' => 'Inactive']);
+        abort_if($member->staffAccount()->exists(), 422, 'This registration is a staff account — remove it from Setup > Users instead.');
 
-        return response()->json($member->fresh());
+        DB::transaction(function () use ($member) {
+            $member->tokens()->delete();
+            $member->update(['status' => 'Inactive']);
+            $member->delete();
+        });
+
+        return response()->json(['message' => 'Member deleted.']);
     }
 
     /**

@@ -106,19 +106,94 @@ body {
   color: var(--color-brand-dark);
 }
 
-/* Printing a receipt: hide everything else on the page. */
+/* Printing a receipt: ReceiptView portals a copy (#receipt-printable) onto
+   <body>. On paper only that copy is laid out — everything else is
+   display:none rather than hidden, so it takes no space (no blank pages)
+   and nothing (like the modal's scroll box) can clip the receipt. */
+#receipt-printable {
+  display: none;
+}
+
 @media print {
-  body * {
-    visibility: hidden;
-  }
-  #receipt-printable,
-  #receipt-printable * {
-    visibility: visible;
+  body > *:not(#receipt-printable) {
+    display: none !important;
   }
   #receipt-printable {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
+    display: block;
   }
+}
+
+/* 80 mm thermal paper: ~72 mm printable, pure black on white (thermal
+   heads can't print grey or colour). Applied to the copy all the time — it
+   is hidden on screen anyway — so ReceiptView can measure it and set the
+   page length to fit (@page size needs a fixed height). */
+@media print {
+  html,
+  body {
+    width: 80mm;
+    margin: 0;
+    background: #fff;
+  }
+}
+
+#receipt-printable {
+  width: 72mm;
+  margin: 0 auto;
+  padding: 3mm 0 6mm;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  line-height: 1.35;
+}
+#receipt-printable,
+#receipt-printable * {
+  color: #000 !important;
+  background: transparent !important;
+}
+#receipt-printable .receipt {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+/* Header stacked and centred: logo, gym name, contact, invoice no. */
+#receipt-printable .receipt-head {
+  flex-direction: column;
+  align-items: center;
+  gap: 1mm;
+  text-align: center;
+  padding-bottom: 2mm;
+  border-bottom: 1px dashed #000;
+}
+#receipt-printable .receipt-brand {
+  flex-direction: column;
+  gap: 1mm;
+}
+#receipt-printable .receipt-logo {
+  height: 14mm;
+  width: auto;
+  filter: grayscale(1) contrast(1.4);
+}
+#receipt-printable .receipt-brand .font-display {
+  font-family: inherit;
+  font-size: 14px;
+}
+#receipt-printable .receipt-head .text-xs,
+#receipt-printable .receipt-invoice {
+  font-size: 10px;
+}
+#receipt-printable .receipt-rows {
+  margin-top: 2mm;
+  font-size: 11px;
+}
+#receipt-printable .receipt-rows > * + * {
+  margin-top: 1mm;
+}
+#receipt-printable .receipt-total {
+  margin-top: 2mm;
+  padding-top: 2mm;
+  border-top: 1px dashed #000;
+}
+#receipt-printable .receipt-total .font-display {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
 }

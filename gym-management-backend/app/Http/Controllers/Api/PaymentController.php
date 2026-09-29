@@ -28,6 +28,7 @@ use Illuminate\Http\JsonResponse;
  *   │                                      │      (handled in MemberController)       │
  *   │ recordPayment(input)                 │ POST /api/payments                       │
  *   │ markTransactionPaid(transactionId)   │ PUT  /api/payments/{id}/mark-paid        │
+ *   │ deleteTransaction(transactionId)     │ DELETE /api/payments/{id}                │
  *   └──────────────────────────────────────┴──────────────────────────────────────────┘
  *
  *   Frontend context: src/context/PaymentsContext.jsx
@@ -151,5 +152,19 @@ class PaymentController extends Controller
         ]);
 
         return response()->json($payment->fresh()->load('member'));
+    }
+
+    /**
+     * DELETE /api/payments/{id}
+     *
+     * Permanently delete a payment (e.g. recorded by mistake). The member's
+     * door access dates are deliberately left as they are — fix them on the
+     * member if the payment had extended them.
+     */
+    public function destroy(Payment $payment): JsonResponse
+    {
+        $payment->delete();
+
+        return response()->json(['message' => 'Payment deleted.']);
     }
 }

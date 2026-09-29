@@ -16,6 +16,7 @@ use Throwable;
  *   Member
  *     Active and access_valid_until ≥ today → on the device with those dates
  *     otherwise → blocked, if they were ever put on the device
+ *   Archived (soft-deleted) → removed from the device and the cloud
  *
  * Granting = add/rename them in the VFT cloud, copy them to the device the
  * first time, then set their dates and turn door access on (see
@@ -42,6 +43,15 @@ class MemberDeviceSync
         $today = CarbonImmutable::now(config('vft.timezone'))->startOfDay();
 
         try {
+            // Archived: take them off the device entirely.
+            if ($member->trashed()) {
+                if ($previousPin) {
+                    $this->commands->removePerson($previousPin);
+                }
+
+                return $this->record($member, 'no_access', null, deviceMode: $this->commands->mode());
+            }
+
             // PIN changed or removed: the old device user must go.
             if ($previousPin && $previousPin !== $pin) {
                 $this->commands->removePerson($previousPin);

@@ -4,7 +4,8 @@
 //   createMember(input)         → POST   /api/members
 //   updateMember(id, updates)   → PUT    /api/members/{id}
 //   setMemberStatus(id, status) → PATCH  /api/members/{id}/status
-//   deactivateMember(memberId)  → DELETE /api/members/{id}  (soft: status → Inactive)
+//   setGateAccess(id, enabled)  → PATCH  /api/members/{id}/gate-access  (status Active ↔ Inactive)
+//   archiveMember(memberId)     → DELETE /api/members/{id}  (archived; purged after 6 months)
 //   enrollOnDevice(id, input)   → POST   /api/members/{id}/enroll  (fingerprint/face on the door device)
 //
 // NOTE: this file previously operated on the in-memory src/services/db.js mock
@@ -35,9 +36,13 @@ export function setMemberStatus(memberId, status) {
   return apiClient.patch(`/members/${memberId}/status`, { status })
 }
 
-// Members are soft-deleted (status -> Inactive) so linked payment
-// history stays intact. See flow spec §3.3 / §5.
-export function deactivateMember(memberId) {
+export function setGateAccess(memberId, enabled) {
+  return apiClient.patch(`/members/${memberId}/gate-access`, { enabled })
+}
+
+// Archived, not erased: payments still show the member. The backend
+// removes them for good after 6 months (members:purge-archived).
+export function archiveMember(memberId) {
   return apiClient.delete(`/members/${memberId}`)
 }
 
